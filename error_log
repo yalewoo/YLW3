@@ -1,0 +1,33 @@
+[04-Dec-2018 00:41:07 America/Chicago] PHP Fatal error:  Call to undefined function get_footer() in /home/yalewooc/public_html/wp-content/themes/YLW3/404.php on line 25
+[04-Dec-2018 00:41:09 America/Chicago] PHP Fatal error:  Call to undefined function get_header() in /home/yalewooc/public_html/wp-content/themes/YLW3/archive.php on line 1
+[06-May-2019 01:52:50 America/Chicago] PHP Fatal error:  Call to undefined function get_header() in /home/yalewooc/public_html/wp-content/themes/YLW3/index.php on line 1
+[23-Jul-2019 07:03:28 America/Chicago] PHP Fatal error:  Call to undefined function get_header() in /home/yalewooc/public_html/wp-content/themes/YLW3/index.php on line 1
+[23-Jul-2019 07:03:28 America/Chicago] PHP Fatal error:  Call to undefined function get_header() in /home/yalewooc/public_html/wp-content/themes/YLW3/index.php on line 1
+[16-Nov-2019 11:11:24 America/Chicago] PHP Fatal error:  Call to undefined function get_footer() in /home/yalewooc/public_html/wp-content/themes/YLW3/404.php on line 28
+[18-Nov-2019 06:52:44 America/Chicago] PHP Fatal error:  Call to undefined function get_footer() in /home/yalewooc/public_html/wp-content/themes/YLW3/404.php on line 28
+[14-Dec-2019 03:17:55 America/Chicago] PHP Fatal error:  Call to undefined function get_footer() in /home/yalewooc/public_html/wp-content/themes/YLW3/404.php on line 28
+[16-Dec-2019 04:05:23 America/Chicago] PHP Fatal error:  Call to undefined function get_footer() in /home/yalewooc/public_html/wp-content/themes/YLW3/404.php on line 28
+[13-Jan-2020 18:37:25 America/Chicago] PHP Fatal error:  Call to undefined function get_footer() in /home/yalewooc/public_html/wp-content/themes/YLW3/404.php on line 28
+[15-Jan-2020 21:23:05 America/Chicago] PHP Fatal error:  Call to undefined function get_footer() in /home/yalewooc/public_html/wp-content/themes/YLW3/404.php on line 28
+[17-Apr-2020 23:46:02 UTC] PHP Fatal error:  Call to undefined function get_footer() in /home/yalewooc/public_html/wp-content/themes/YLW3/404.php on line 28
+[25-Apr-2020 19:21:19 UTC] PHP Fatal error:  Call to undefined function get_footer() in /home/yalewooc/public_html/wp-content/themes/YLW3/404.php on line 28
+[08-Dec-2020 01:18:21 UTC] PHP Fatal error:  Call to undefined function get_header() in /home/yalewooc/public_html/wp-content/themes/YLW3/index.php on line 1
+[08-Dec-2020 01:18:21 UTC] PHP Fatal error:  Call to undefined function get_header() in /home/yalewooc/public_html/wp-content/themes/YLW3/index.php on line 1
+[24-Feb-2021 21:40:49 UTC] PHP Fatal error:  Call to undefined function get_header() in /home/yalewooc/public_html/wp-content/themes/YLW3/index.php on line 1
+[24-Feb-2021 21:50:52 UTC] PHP Fatal error:  Call to undefined function get_header() in /home/yalewooc/public_html/wp-content/themes/YLW3/index.php on line 1
+[25-Feb-2021 18:45:40 UTC] PHP Fatal error:  Call to undefined function get_header() in /home/yalewooc/public_html/wp-content/themes/YLW3/index.php on line 1
+[26-Feb-2021 20:37:42 UTC] PHP Fatal error:  Call to undefined function get_header() in /home/yalewooc/public_html/wp-content/themes/YLW3/index.php on line 1
+[22-May-2021 14:50:19 UTC] PHP Fatal error:  Call to undefined function get_footer() in /home/yalewooc/public_html/wp-content/themes/YLW3/404.php on line 28
+[17-Sep-2021 08:33:31 UTC] PHP Fatal error:  Call to undefined function get_header() in /home/yalewooc/public_html/wp-content/themes/YLW3/index.php on line 1
+[18-Jan-2022 07:55:25 UTC] PHP Fatal error:  Call to undefined function get_header() in /home/yalewooc/public_html/wp-content/themes/YLW3/index.php on line 1
+[17-Dec-2022 01:46:37 UTC] PHP Fatal error:  Call to undefined function get_header() in /home/yalewooc/public_html/wp-content/themes/YLW3/index.php on line 1
+[13-Mar-2023 12:11:51 UTC] PHP Fatal error:  Call to undefined function get_header() in /home/yalewooc/public_html/wp-content/themes/YLW3/index.php on line 1
+[21-Mar-2023 11:08:45 UTC] PHP Fatal error:  Call to undefined function get_header() in /home/yalewooc/public_html/wp-content/themes/YLW3/index.php on line 1
+[01-Jan-2024 07:36:03 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function get_header() in /home2/yalewooc/public_html/wp-content/themes/YLW3/index.php:1
+Stack trace:
+#0 {main}
+  thrown in /home2/yalewooc/public_html/wp-content/themes/YLW3/index.php on line 1
+[04-May-2024 17:41:58 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function get_header() in /home2/yalewooc/public_html/wp-content/themes/YLW3/index.php:1
+Stack trace:
+#0 {main}
+  thrown in /home2/yalewooc/public_html/wp-content/themes/YLW3/index.php on line 1
