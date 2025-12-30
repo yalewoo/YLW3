@@ -3,7 +3,7 @@
 			
 			<h2 class="post-title">
 
-				<?php   $custom_fields = get_post_custom_keys($post_id);
+				<?php   $custom_fields = get_post_custom_keys(get_the_ID());
 				if ($custom_fields && !in_array ('copyright', $custom_fields)) : ?>
 				<span class = "title-meta-yuanchuang title-meta-ico"></span>
 				<?php else: ?>

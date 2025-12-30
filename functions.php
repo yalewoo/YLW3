@@ -117,6 +117,10 @@ add_action('comment_form', 'add_checkbox', 20, 2);
 
 
 function spam_protection_pre($commentdata){
+	// 只对普通评论进行验证码检查，排除 trackback/pingback
+	if(isset($commentdata['comment_type']) && $commentdata['comment_type'] != ''){
+		return $commentdata;
+	}
 	$sum=$_POST['sum'];
 	switch($sum){
 	case $_POST['num1']+$_POST['num2']:break;
@@ -125,10 +129,7 @@ function spam_protection_pre($commentdata){
 	}
 	return $commentdata;
 }
-
-if($comment_data['comment_type']==''){
-	add_filter('preprocess_comment','spam_protection_pre');
-}
+add_filter('preprocess_comment','spam_protection_pre');
 
 
 
@@ -354,11 +355,11 @@ class WP_Widget_myRandom_Posts extends WP_Widget {
 }
 
 	// register WP_Widget_myRandom_Posts widget
-	add_action( 'widgets_init', create_function( '', 'return register_widget("WP_Widget_myRandom_Posts");' ) );
+	add_action( 'widgets_init', function() { return register_widget('WP_Widget_myRandom_Posts'); } );
 
 
 //wordpress禁用图片属性srcset和sizes   
-add_filter( 'max_srcset_image_width', create_function('', 'return 1;' ) );  
+add_filter( 'max_srcset_image_width', function() { return 1; } );  
 
 //分页  
 function par_pagenavi($range = 9){   
@@ -367,7 +368,7 @@ global $wp_query, $paged;
 $max_page = $wp_query->max_num_pages;  
 if ( $max_page == 1 ) return;  
 if ( empty( $paged ) ) $paged = 1;  
-echo '<span>'.第 . $paged .页 .（共 . $max_page .页）. ' </span> ';  
+echo '<span>第' . $paged . '页（共' . $max_page . '页）</span> ';  
     global $paged, $wp_query;    
     if ( !$max_page ) {$max_page = $wp_query->max_num_pages;}    
     if($max_page > 1){if(!$paged){$paged = 1;}    

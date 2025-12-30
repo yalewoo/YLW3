@@ -6,7 +6,7 @@
 
 
 
-	<input type="text" value="<?php echo wp_specialchars($s, 1); ?>" name="s" id="s" size="15" />
+	<input type="text" value="<?php echo esc_attr(get_search_query()); ?>" name="s" id="s" size="15" />
 
 
 
