@@ -1,5 +1,5 @@
 <footer id="footer">
-      Copyright &copy;   <a title="<?php bloginfo('name') ?>" href="<?php bloginfo('siteurl')?>"><?php bloginfo('name') ?></a>  /<a title="自豪地采用WordPress" href="https://cn.wordpress.org" target="_blank">WordPress</a> / <a title="YLW3.0主题" href="http://www.yalewoo.com/ylw3.html" target="_blank">YLW3.0</a>  /  <a title="老薛主机" href="https://my.laoxuehost.net/aff.php?aff=2518" target="_blank">老薛主机</a>  /  <a title="七牛云存储" href="https://portal.qiniu.com/signup?code=3li1yeb2ph1ea" target="_black">七牛云存储</a>
+      Copyright &copy;   <a title="<?php bloginfo('name') ?>" href="<?php bloginfo('siteurl')?>"><?php bloginfo('name') ?></a>  /<a title="自豪地采用WordPress" href="https://cn.wordpress.org" target="_blank">WordPress</a> / <a title="YLW3.0主题" href="https://www.yalewoo.com/ylw3.html" target="_blank">YLW3.0</a>  /  <a title="老薛主机" href="https://my.laoxuehost.net/aff.php?aff=2518" target="_blank">老薛主机</a>  /  <a title="七牛云存储" href="https://portal.qiniu.com/signup?code=3li1yeb2ph1ea" target="_blank">七牛云存储</a>
 
       <div id="footer_menu">
       	<?php wp_nav_menu( array( 'theme_location' => 'footer_menu' )); ?>
@@ -20,6 +20,12 @@ var _hmt = _hmt || [];
 </footer>
 
 <script type="text/javascript" src="<?php bloginfo('template_directory'); ?>/js/backtop.js"></script>
+<script src="<?php echo get_template_directory_uri(); ?>/js/jquery.lazyload.min.js"></script>
+<script>
+jQuery(function($) {
+    $("img").lazyload({ effect: "fadeIn" });
+});
+</script>
 
 <?php wp_footer(); ?>
 

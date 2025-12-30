@@ -148,6 +148,14 @@ function colorCloudCallback($matches) {
 }
 add_filter('wp_tag_cloud', 'colorCloud', 1);
 
+// 首页按修改时间排序（替代query_posts）
+function ylw_modify_main_query($query) {
+    if ($query->is_main_query() && !is_admin() && $query->is_home()) {
+        $query->set('orderby', 'modified');
+    }
+}
+add_action('pre_get_posts', 'ylw_modify_main_query');
+
 
 //修改摘要字数
 function new_excerpt_length($length) {

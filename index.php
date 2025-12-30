@@ -8,7 +8,6 @@
 <div id="container">
 
 	<section id="blog">
-        <?php $posts = query_posts($query_string . '&orderby=modified');?>
 		
         <?php include("post-article.php"); ?>
 
