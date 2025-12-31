@@ -8,11 +8,16 @@ remove_action('wp_head', 'index_rel_link');
 remove_action('wp_head', 'adjacent_posts_rel_link');
 remove_action( 'wp_head', 'wp_resource_hints', 2 );
 add_filter( 'emoji_svg_url', '__return_false' );
-add_filter('rest_enabled', '_return_false');
-add_filter('rest_jsonp_enabled', '_return_false');
+add_filter('rest_enabled', '__return_false');
+add_filter('rest_jsonp_enabled', '__return_false');
+
+// 禁用 pingback/trackback（解决本地环境 cron 慢的问题）
+remove_action('do_pings', 'do_all_pings');
+add_filter('pings_open', '__return_false');
+
 remove_action( 'wp_head', 'rest_output_link_wp_head', 10 );
 remove_action( 'wp_head', 'wp_oembed_add_discovery_links', 10 );
-add_filter('wp_list_bookmarks','rbt_friend_links');
+//add_filter('wp_list_bookmarks','rbt_friend_links'); // 已注释：函数未定义
 add_filter( 'pre_option_link_manager_enabled', '__return_true' );
 
 //去掉Embed 功能
@@ -30,10 +35,6 @@ add_action( 'init', 'disable_embeds_init', 9999 );
 function disable_embeds_tiny_mce_plugin( $plugins ) { return array_diff( $plugins, array( 'wpembed' ) ); }
 function disable_embeds_rewrites( $rules ) { foreach ( $rules as $rule => $rewrite ) { if ( false !== strpos( $rewrite, 'embed=true' ) ) { unset( $rules[ $rule ] ); } }
 return $rules; }
-function disable_embeds_remove_rewrite_rules() { add_filter( 'rewrite_rules_array', 'disable_embeds_rewrites' ); flush_rewrite_rules(); }
-register_activation_hook( __FILE__, 'disable_embeds_remove_rewrite_rules' );
-function disable_embeds_flush_rewrite_rules() { remove_filter( 'rewrite_rules_array', 'disable_embeds_rewrites' ); flush_rewrite_rules(); }
-register_deactivation_hook( __FILE__, 'disable_embeds_flush_rewrite_rules' );
 
 
 //禁用wordpress自带emjoy表情
@@ -81,13 +82,20 @@ if(function_exists('register_nav_menus')){
 }
 //添加侧边栏
 if ( function_exists('register_sidebar') )
-    register_sidebar();
+    register_sidebar(array(
+        'id'            => 'sidebar-1',
+        'name'          => '边栏1',
+        'before_widget' => '<li id="%1$s" class="widget %2$s">',
+        'after_widget'  => '</li>',
+        'before_title'  => '<h2 class="widget-title">',
+        'after_title'   => '</h2>',
+    ));
 
 
 //添加评论表情
 function add_my_tips() {
 
-		include(TEMPLATEPATH . '/smiley.php');
+		include(get_template_directory() . '/smiley.php');
 
 }
 add_filter('comment_form_before_fields', 'add_my_tips');
@@ -181,7 +189,7 @@ function catch_first_image() {
 		
 	$first_img = $matches [1] [0];
 	if(empty($first_img)){
-		$first_img = bloginfo('template_directory').'/img/default.png';
+		$first_img = get_template_directory_uri().'/img/default.png';
 		return $first_img;
 	}
 	else
@@ -215,25 +223,6 @@ function Bing_editor_buttons($buttons){
 }
 add_filter("mce_buttons_3", "Bing_editor_buttons");
 
-//post_is_in_under_category
-//check if a post is under a category or categories;
-//In Single.php,second param no need;
-//first param is for cat id;
-function post_is_in_under_category( $cats, $_post = null )
-{
- foreach ( (array) $cats as $cat ) {
- // get_term_children() accepts integer ID only
- $descendants = get_term_children( (int) $cat, 'category');
- if (in_category( $cat, $_post ) || ($descendants && in_category( $descendants, $_post) ) )
- return true;
- }
- return false;
-}
-
-
-
-?>
-<?php 
 
 //修改摘要样式
 function new_excerpt_more( $more ) {
@@ -310,7 +299,7 @@ class WP_Widget_myRandom_Posts extends WP_Widget {
             $number = 5;
 
         // WP 数据库查询，使用 rand 参数来获取随机的排序，并取用前面的 $number 个文章
-        $randomposts = get_posts( array( 'number' => $number, 'orderby' => 'rand', 'post_status' => 'publish' ) );
+        $randomposts = get_posts( array( 'numberposts' => $number, 'orderby' => 'rand', 'post_status' => 'publish' ) );
 
         // 下面开始准备输出数据
         // 先输出一般的 widget 前缀
@@ -495,7 +484,7 @@ add_action('comment_post', 'comment_mail_notify');
 add_filter ('the_content', 'lazyload');
 function lazyload($content) {
     $loadimg_url=get_bloginfo('template_directory').'/img/loading.gif';
-    if(!is_feed()||!is_robots) {
+    if(!is_feed() && !is_robots()) {
         $content=preg_replace('/<img(.+)src=[\'"]([^\'"]+)[\'"](.*)>/i',"<img\$1data-original=\"\$2\" src=\"$loadimg_url\"\$3>\n<noscript>\$0</noscript>",$content);
     }
     return $content;
@@ -509,6 +498,70 @@ function autoblank($text) {
 	return $return;
 }
 add_filter('the_content', 'autoblank');
+
+
+// ========== MathJax 数学公式支持 ==========
+
+// 添加文章编辑页面的 Meta Box
+function ylw_mathjax_meta_box() {
+    add_meta_box(
+        'ylw_mathjax_meta_box',
+        '数学公式',
+        'ylw_mathjax_meta_box_callback',
+        'post',
+        'side',
+        'default'
+    );
+}
+add_action('add_meta_boxes', 'ylw_mathjax_meta_box');
+
+// Meta Box 的内容（复选框）
+function ylw_mathjax_meta_box_callback($post) {
+    wp_nonce_field('ylw_mathjax_nonce_action', 'ylw_mathjax_nonce');
+    $value = get_post_meta($post->ID, 'enableMathJax', true);
+    ?>
+    <label>
+        <input type="checkbox" name="enableMathJax" value="1" <?php checked($value, '1'); ?> />
+        启用数学公式（MathJax）
+    </label>
+    <p class="description">勾选后将加载 MathJax 渲染 LaTeX 公式</p>
+    <?php
+}
+
+// 保存 Meta 数据
+function ylw_save_mathjax_meta($post_id) {
+    if (!isset($_POST['ylw_mathjax_nonce']) || !wp_verify_nonce($_POST['ylw_mathjax_nonce'], 'ylw_mathjax_nonce_action')) {
+        return;
+    }
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+    if (isset($_POST['enableMathJax'])) {
+        update_post_meta($post_id, 'enableMathJax', '1');
+    } else {
+        delete_post_meta($post_id, 'enableMathJax');
+    }
+}
+add_action('save_post', 'ylw_save_mathjax_meta');
+
+// 前端加载 KaTeX
+function ylw_load_katex() {
+    if (!is_singular('post')) {
+        return;
+    }
+    
+    $enable = get_post_meta(get_the_ID(), 'enableMathJax', true);
+    
+    if ($enable === '1') {
+        echo '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">';
+        echo '<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>';
+        echo '<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:\'$$\',right:\'$$\',display:true},{left:\'\\\\(\',right:\'\\\\)\',display:false},{left:\'\\\\[\',right:\'\\\\]\',display:true}]});"></script>';
+    }
+}
+add_action('wp_footer', 'ylw_load_katex');
 
 
 ?>
