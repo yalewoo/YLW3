@@ -16,6 +16,26 @@ jQuery(document).ready(function($) {
         return;
     }
     
+    // 创建折叠按钮（窄屏幕时显示）
+    var toggleBtn = $('<button class="toc-toggle-btn" title="目录">📑</button>');
+    $('body').append(toggleBtn);
+    
+    // 点击按钮切换目录显示
+    toggleBtn.on('click', function() {
+        toc.toggleClass('toc-visible');
+        toggleBtn.toggleClass('toc-active');
+    });
+    
+    // 点击目录外区域关闭目录（窄屏幕时）
+    $(document).on('click', function(e) {
+        if (window.innerWidth <= 1024) {
+            if (!$(e.target).closest('.table-of-contents, .toc-toggle-btn').length) {
+                toc.removeClass('toc-visible');
+                toggleBtn.removeClass('toc-active');
+            }
+        }
+    });
+    
     // 为每个标题添加 id 并生成目录项
     headings.each(function(index) {
         var $heading = $(this);
@@ -71,6 +91,12 @@ jQuery(document).ready(function($) {
                 top: targetOffset,
                 behavior: 'smooth'
             });
+            
+            // 窄屏幕时点击后关闭目录
+            if (window.innerWidth <= 1024) {
+                toc.removeClass('toc-visible');
+                toggleBtn.removeClass('toc-active');
+            }
         }
     });
     

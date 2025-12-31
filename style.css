@@ -425,13 +425,68 @@ img {
 	font-size: 0.875rem;
 }
 
-/* 屏幕不够宽时隐藏目录，文章占满 */
+/* 屏幕不够宽时目录折叠显示 */
 @media (max-width: 1024px) {
 	.single #container {
 		grid-template-columns: 1fr;
 	}
 	
 	.table-of-contents {
+		position: fixed;
+		bottom: 80px;
+		right: 16px;
+		top: auto;
+		width: auto;
+		max-width: calc(100vw - 32px);
+		max-height: 60vh;
+		z-index: 100;
+		box-shadow: var(--shadow-lg);
+		transform: translateY(10px);
+		opacity: 0;
+		visibility: hidden;
+		transition: all 0.3s ease;
+	}
+	
+	.table-of-contents.toc-visible {
+		transform: translateY(0);
+		opacity: 1;
+		visibility: visible;
+	}
+	
+	/* 折叠按钮 */
+	.toc-toggle-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		position: fixed;
+		bottom: 20px;
+		right: 16px;
+		width: 48px;
+		height: 48px;
+		background: var(--primary-color);
+		color: white;
+		border: none;
+		border-radius: 50%;
+		box-shadow: var(--shadow-md);
+		cursor: pointer;
+		z-index: 101;
+		font-size: 1.25rem;
+		transition: all 0.3s ease;
+	}
+	
+	.toc-toggle-btn:hover {
+		transform: scale(1.1);
+		box-shadow: var(--shadow-lg);
+	}
+	
+	.toc-toggle-btn.toc-active {
+		background: var(--text-secondary);
+	}
+}
+
+/* 大屏幕隐藏折叠按钮 */
+@media (min-width: 1025px) {
+	.toc-toggle-btn {
 		display: none;
 	}
 }
@@ -1806,23 +1861,43 @@ table tr:last-child td {
 	}
 	
 	#topheader {
-		flex-direction: column;
-		align-items: flex-start;
-		padding: var(--spacing-md);
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		padding: var(--spacing-sm) var(--spacing-md);
+		gap: var(--spacing-sm);
+	}
+	
+	#topheader hgroup {
+		flex: 1;
+		min-width: 0;
 	}
 	
 	#topheader hgroup h1 {
-		font-size: 1.5rem;
+		font-size: 1.25rem;
+	}
+	
+	#topheader hgroup h2 {
+		display: none;
 	}
 	
 	#top_menu {
-		width: 100%;
-		flex-direction: column;
-		align-items: flex-start;
+		flex-shrink: 0;
+		gap: var(--spacing-sm);
+	}
+	
+	#top_menu ul {
+		display: none;
 	}
 	
 	#searchform div {
-		width: 100%;
+		width: 140px;
+		padding: 4px 8px;
+	}
+	
+	#s {
+		font-size: 0.85rem;
 	}
 	
 	.main_nav > div > ul {
@@ -1831,7 +1906,8 @@ table tr:last-child td {
 	}
 	
 	.main_nav > div li a {
-		padding: var(--spacing-md);
+		padding: var(--spacing-sm) var(--spacing-md);
+		font-size: 0.9rem;
 		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 	}
 	
