@@ -2,6 +2,7 @@
 <?php include("header-nav.php"); ?>
 
 <script type="text/javascript" src="<?php bloginfo('template_directory'); ?>/js/dianzan.js"></script>
+<script type="text/javascript" src="<?php bloginfo('template_directory'); ?>/js/toc.js"></script>
 
 
 <div id="mbxdh">
@@ -16,6 +17,11 @@
 		</div>
 </div>
 <div id="container">
+	<!-- 文章目录导航 -->
+	<nav id="toc" class="table-of-contents">
+		<div class="toc-header">目录</div>
+		<ul class="toc-list"></ul>
+	</nav>
 
 	<?php if(have_posts()) : ?><?php while(have_posts()) : the_post(); ?>
 	<section class="whole_article" id="article-<?php the_ID(); ?>">
@@ -211,9 +217,6 @@
         <?php endif; ?>
 
 	</section>
-	
-
-
-	<?//php get_sidebar(); ?>
 </div>
+
 <?php get_footer(); ?>
