@@ -470,7 +470,7 @@ function comment_mail_notify($comment_id) {
        . trim(get_comment($parent_id)->comment_content) . '</p>
       <p>' . trim($comment->comment_author) . ' 给您回复了：</p><p style="background-color:#eef2fa; border:1px solid #d8e3e8; color:#111; padding:15px; border-radius:5px;">'
        . trim($comment->comment_content) . '<br /></p>
-      <p>您还可以<a href="' . htmlspecialchars(get_comment_link($parent_id)) . '" title="单击查看完整的回复内容" target="_blank">&nbsp;查看完整的回复內容</a>，欢迎再度光临<a href="http://www.yalewoo.com">雅乐网</a></p>
+      <p>您还可以<a href="' . htmlspecialchars(get_comment_link($parent_id)) . '" title="单击查看完整的回复内容" target="_blank">&nbsp;查看完整的回复內容</a>，欢迎再度光临<a href="https://www.yalewoo.com">雅乐网</a></p>
     </div>';
          $from = "From: \"" . get_option('blogname') . "评论提醒\" <$wp_email>";
          $headers = "$from\nContent-Type: text/html; charset=" . get_option('blog_charset') . "\n";
