@@ -13,7 +13,7 @@
 		<article <?php post_class(); ?> id="entry">
 			<h2 id="article-title">
 
-				<?php   $custom_fields = get_post_custom_keys($post_id);
+				<?php   $custom_fields = get_post_custom_keys(get_the_ID());
 				if (!in_array ('copyright', $custom_fields)) : ?>
 				<span class = "title-meta-yuanchuang title-meta-ico"></span>
 				<?php else: ?>
@@ -22,7 +22,7 @@
 
 				<a href="<?php the_permalink(); ?>" title="<?php the_title(); ?>"><?php the_title(); ?></a>
 
-				<?php   //$custom_fields = get_post_custom_keys($post_id);
+				<?php   //$custom_fields = get_post_custom_keys(get_the_ID());
 				if (in_array ('recommend', $custom_fields)) : ?>
 				<span class = "title-meta-recommend title-meta-ico"></span>
 				<?php endif; ?>
@@ -116,12 +116,12 @@
 		
 
 		<div class="article-copyright">
-            <?php   $custom_fields = get_post_custom_keys($post_id);
+            <?php   $custom_fields = get_post_custom_keys(get_the_ID());
 			if (!in_array ('copyright', $custom_fields)) : ?>
     			<b> 版权声明: </b>
     			<p> 本文由 <?php the_author_posts_link(); ?> 原创，商业转载请联系作者获得授权。 <br>非商业转载请注明作者 <?php the_author_posts_link(); ?> 或 <a href="http://www.yalewoo.com/" title="雅乐网" ?>雅乐网</a> ，并附带本文链接：<br><a href="<?php the_permalink()?>" title=<?php the_title(); ?>><?php the_permalink()?></a></p>
 				<?php else: ?>
-			<?php  $custom = get_post_custom($post_id);
+			<?php  $custom = get_post_custom(get_the_ID());
        		$custom_value = $custom['copyright']; ?>
    				<b> 转载声明: </b> 
    				<p>本文来源于 <a rel="nofollow" target="_blank" href="/go.php?url=<?php echo $custom_value[0] ?>"><?php echo $custom_value[0] ?></a>

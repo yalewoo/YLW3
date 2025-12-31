@@ -220,17 +220,18 @@ img {
 #searchform div {
 	display: flex;
 	align-items: center;
-	background: var(--bg-card);
+	background: var(--bg-body);
 	border: 1px solid var(--border-color);
-	border-radius: var(--radius-full);
-	padding: var(--spacing-xs) var(--spacing-sm);
+	border-radius: var(--radius-md);
+	padding: 6px 12px;
 	transition: all var(--transition-fast);
-	width: 220px;
+	width: 180px;
 }
 
 #searchform div:focus-within {
 	border-color: var(--primary-color);
-	box-shadow: 0 0 0 3px rgba(196, 20, 17, 0.1);
+	background: var(--bg-card);
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 #s {
@@ -641,17 +642,18 @@ img {
 .meta-ico::before {
 	font-size: 0.9em;
 	opacity: 0.7;
+	margin-right: 4px;
 }
 
-.meta-time::before { content: "📅"; }
-.meta-author::before { content: "👤"; }
-.meta-view::before { content: "👁"; }
-.meta-comment::before { content: "💬"; }
-.meta-category::before { content: "📁"; }
+.meta-time::before { content: "\1F4C5"; }
+.meta-author::before { content: "\1F464"; }
+.meta-view::before { content: "\1F441"; }
+.meta-comment::before { content: "\1F4AC"; }
+.meta-category::before { content: "\1F4C1"; }
 
 /* 置顶文章 */
 .sticky {
-	background: linear-gradient(135deg, rgba(250, 166, 25, 0.05) 0%, rgba(196, 20, 17, 0.05) 100%);
+	background: linear-gradient(135deg, rgba(6, 182, 212, 0.05) 0%, rgba(37, 99, 235, 0.05) 100%);
 	border: 2px solid var(--accent-color) !important;
 	border-radius: var(--radius-lg);
 	padding: var(--spacing-xl) !important;
@@ -660,7 +662,7 @@ img {
 }
 
 .sticky::before {
-	content: "📌 置顶";
+	content: "\1F4CC \7F6E\9876";
 	position: absolute;
 	top: var(--spacing-sm);
 	right: var(--spacing-md);
@@ -715,7 +717,7 @@ img {
 }
 
 .title-meta-huo::before {
-	content: "🔥";
+	content: "\1F525";
 }
 
 /* ========================================
@@ -814,17 +816,18 @@ img {
 #mbxdh {
 	max-width: var(--max-width);
 	margin: 0 auto;
-	padding: var(--spacing-md);
+	padding: var(--spacing-sm) var(--spacing-md);
 	display: flex;
 	align-items: center;
-	gap: var(--spacing-sm);
-	font-size: 0.9rem;
+	gap: var(--spacing-xs);
+	font-size: 0.85rem;
 	color: var(--text-muted);
 }
 
 #mbxdh::before {
-	content: "📍";
-	font-size: 1.1em;
+	content: "\1F4CD";
+	font-size: 0.9em;
+	margin-right: var(--spacing-xs);
 }
 
 #mbxdh a {
@@ -875,12 +878,12 @@ img {
 #entry .post-meta {
 	display: flex;
 	flex-wrap: wrap;
-	gap: var(--spacing-md);
-	padding: var(--spacing-lg) 0;
-	margin-bottom: var(--spacing-xl);
-	border-top: 1px solid var(--border-light);
+	align-items: center;
+	gap: var(--spacing-sm) var(--spacing-lg);
+	padding: var(--spacing-md) 0;
+	margin-bottom: var(--spacing-lg);
 	border-bottom: 1px solid var(--border-light);
-	font-size: 0.9rem;
+	font-size: 0.85rem;
 	color: var(--text-muted);
 }
 
@@ -1004,7 +1007,7 @@ img {
 .article-copyright {
 	margin: var(--spacing-2xl) 0;
 	padding: var(--spacing-lg);
-	background: linear-gradient(135deg, rgba(196, 20, 17, 0.05), rgba(250, 166, 25, 0.05));
+	background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(6, 182, 212, 0.05));
 	border: 1px solid var(--border-color);
 	border-radius: var(--radius-md);
 }
@@ -1325,7 +1328,7 @@ img {
 #respond textarea:focus {
 	outline: none;
 	border-color: var(--primary-color);
-	box-shadow: 0 0 0 3px rgba(196, 20, 17, 0.1);
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .comment-form-comment {
@@ -1337,6 +1340,18 @@ img {
 	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 	gap: var(--spacing-md);
 	margin-bottom: var(--spacing-lg);
+}
+
+.comment-name-email-url p {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-xs);
+}
+
+.comment-name-email-url label {
+	font-size: 0.9rem;
+	font-weight: 500;
+	color: var(--text-primary);
 }
 
 .comment-name-email-url input {
@@ -1353,7 +1368,7 @@ img {
 .comment-name-email-url input:focus {
 	outline: none;
 	border-color: var(--primary-color);
-	box-shadow: 0 0 0 3px rgba(196, 20, 17, 0.1);
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 #submit {
@@ -1384,13 +1399,31 @@ img {
 	margin-bottom: var(--spacing-md);
 }
 
+.ylw_smilies_box_wrapper {
+	position: relative;
+}
+
 .ylw_smilies_box {
 	position: absolute;
+	top: 100%;
+	left: 0;
 	background: var(--bg-card);
 	padding: var(--spacing-md);
 	border-radius: var(--radius-md);
 	box-shadow: var(--shadow-xl);
-	z-index: 100;
+	z-index: 1000;
+	display: none;
+	max-width: 400px;
+}
+
+.ylw_smilies_box a {
+	display: inline-block;
+	padding: 4px;
+}
+
+.ylw_smilies_box img {
+	width: 24px;
+	height: 24px;
 }
 
 img.wp-smiley {
@@ -1459,7 +1492,7 @@ img.wp-smiley {
 }
 
 #footer_menu ul li a:hover {
-	background: rgba(196, 20, 17, 0.08);
+	background: rgba(37, 99, 235, 0.08);
 }
 
 /* ========================================
