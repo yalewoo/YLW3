@@ -8,7 +8,7 @@ remove_action('wp_head', 'index_rel_link');
 remove_action('wp_head', 'adjacent_posts_rel_link');
 remove_action( 'wp_head', 'wp_resource_hints', 2 );
 add_filter( 'emoji_svg_url', '__return_false' );
-add_filter('rest_enabled', '__return_false');
+// REST API 保持开放（多个插件依赖）
 add_filter('rest_jsonp_enabled', '__return_false');
 
 // 禁用 pingback/trackback（解决 cron 慢的问题）
