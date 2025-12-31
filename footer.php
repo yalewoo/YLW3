@@ -20,13 +20,6 @@ var _hmt = _hmt || [];
 </footer>
 
 <script type="text/javascript" src="<?php bloginfo('template_directory'); ?>/js/backtop.js"></script>
-<script src="<?php echo get_template_directory_uri(); ?>/js/jquery.lazyload.min.js"></script>
-<script>
-jQuery(function($) {
-    $("img[data-original]").lazyload({ effect: "fadeIn" });
-});
-</script>
-
 <?php wp_footer(); ?>
 
 

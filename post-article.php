@@ -42,7 +42,7 @@
 				
 
 			<div class="post-thumb">
-			<img data-original="<?php echo catch_first_image() ?>" src="<?php echo get_bloginfo('template_directory')?>/img/loading.gif" alt="<?php the_title(); ?>" />
+			<img src="<?php echo catch_first_image() ?>" alt="<?php the_title(); ?>" loading="lazy" />
 			</div>
 
 			<div class="post-content">
