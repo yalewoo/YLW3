@@ -21,7 +21,7 @@
 
                 <?php _e('by'); ?> <?php the_author_posts_link(); ?>
                 <?php comments_popup_link('快抢沙发 &#187;', '沙发被抢 &#187;', '% 评论 &#187;'); ?> <?php edit_post_link('Edit', ' &#124; ', ''); ?>
-                 <?php if(function_exists('pvc_post_views')) { pvc_post_views(); } ?>
+                 <?php if(function_exists('the_views')) { the_views(); } ?>
 			</div>
 
             <div id="article-content">

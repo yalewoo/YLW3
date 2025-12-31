@@ -55,7 +55,7 @@
                     <span class="meta-author meta-ico"><?php the_author_posts_link(); ?> </span>
                     
                     
-                    <span class="meta-view meta-ico"><?php if(function_exists('pvc_post_views')) { pvc_post_views(); } ?></span>
+                    <span class="meta-view meta-ico"><?php if(function_exists('the_views')) { the_views(); } ?></span>
                     <span class="meta-comment meta-ico"><?php comments_popup_link('0', '1', '%'); ?></span>
 
                     
