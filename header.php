@@ -1,10 +1,6 @@
 <!DOCTYPE html>
-<html>
+<html <?php language_attributes(); ?>>
 	<head>
-		<title>
-			<?php wp_title(' | ', true, 'right') ?>
-		</title>
-		
 		<meta charset="<?php bloginfo('charset'); ?>" />
 		<meta name="renderer" content="webkit">
 		<link rel="stylesheet" href="<?php bloginfo('stylesheet_url'); ?>" type="text/css" />

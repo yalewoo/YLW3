@@ -7,7 +7,6 @@ remove_action('wp_head', 'start_post_rel_link');
 remove_action('wp_head', 'index_rel_link');
 remove_action('wp_head', 'adjacent_posts_rel_link');
 remove_action( 'wp_head', 'wp_resource_hints', 2 );
-add_filter( 'emoji_svg_url', '__return_false' );
 // REST API 保持开放（多个插件依赖）
 add_filter('rest_jsonp_enabled', '__return_false');
 
@@ -60,20 +59,22 @@ function disable_emojis_tinymce( $plugins ) {
 
 
 
-//网页标题
-function ylw_wp_title( $title, $sep ) {
-	global $paged, $page;
-	if ( is_feed() )
-		return $title;
-	$title .= get_bloginfo( 'name');
-	$site_description = get_bloginfo( 'description');
-	if ( $site_description && ( is_home() ) )
-		$title = "$title $sep $site_description";
-	if ( $paged >= 2 || $page >= 2 )
-		$title = "$title $sep " . sprintf( '第 %s 页', max( $paged, $page ) );
-	return $title;
+// 网页标题（WordPress 4.1+ 现代写法）
+add_theme_support( 'title-tag' );
+
+// 自定义标题分隔符和格式
+function ylw_document_title_parts( $title ) {
+    if ( is_home() || is_front_page() ) {
+        $title['tagline'] = get_bloginfo( 'description' );
+    }
+    return $title;
 }
-add_filter( 'wp_title', 'ylw_wp_title', 10, 2 );
+add_filter( 'document_title_parts', 'ylw_document_title_parts' );
+
+function ylw_document_title_separator( $sep ) {
+    return '|';
+}
+add_filter( 'document_title_separator', 'ylw_document_title_separator' );
 
 //添加自定义菜单
 if(function_exists('register_nav_menus')){
@@ -190,43 +191,12 @@ function catch_first_image() {
 		$output = preg_match_all('/<img.+src=[\'"]([^\'"]+)[\'"].*>/i', $post->post_content, $matches);
 	}
 		
-	$first_img = $matches [1] [0];
-	if(empty($first_img)){
-		$first_img = get_template_directory_uri().'/img/default.png';
-		return $first_img;
+	$first_img = $matches[1][0];
+	if ( empty( $first_img ) ) {
+		return get_template_directory_uri() . '/img/default.png';
 	}
-	else
-	{
-		if (strpos($first_img, "7d9rd6.com1.z0.glb.clouddn.com"))
-		{
-			return $first_img.'-indexthumb';
-		}
-		else
-		{
-			return $first_img;
-		}
-	}
-};
-//增强默认编辑器
-function Bing_editor_buttons($buttons){
-	$buttons[] = 'fontselect';
-	$buttons[] = 'fontsizeselect';
-	$buttons[] = 'backcolor';
-	$buttons[] = 'underline';
-	$buttons[] = 'hr';
-	$buttons[] = 'sub';
-	$buttons[] = 'sup';
-	$buttons[] = 'cut';
-	$buttons[] = 'copy';
-	$buttons[] = 'paste';
-	$buttons[] = 'cleanup';
-	$buttons[] = 'wp_page';
-	$buttons[] = 'newdocument';
-	return $buttons;
+	return $first_img;
 }
-add_filter("mce_buttons_3", "Bing_editor_buttons");
-
-
 //修改摘要样式
 function new_excerpt_more( $more ) {
 	return '';
@@ -357,10 +327,6 @@ class WP_Widget_myRandom_Posts extends WP_Widget {
 	// register WP_Widget_myRandom_Posts widget
 	add_action( 'widgets_init', function() { return register_widget('WP_Widget_myRandom_Posts'); } );
 
-
-//wordpress禁用图片属性srcset和sizes   
-add_filter( 'max_srcset_image_width', function() { return 1; } );  
-
 //分页  
 function par_pagenavi($range = 9){   
 if ( is_singular() ) return;  
@@ -419,15 +385,6 @@ function twentyfifteen_comment_nav() {
 	<?php
 	endif;
 }
-
-//修改头像服务器
-// function mytheme_get_avatar( $avatar ) {
-// //$avatar = preg_replace( "/http:\/\/(www|\d).gravatar.com/","http://on63vd0xn.bkt.clouddn.com/",$avatar );
-// $avatar = preg_replace( "/http:\/\/(www|\d).gravatar.com/","http://gravatar.duoshuo.com",$avatar );
-
-// return $avatar;
-// }
-// add_filter( 'get_avatar', 'mytheme_get_avatar' );
 
 //评论者的链接新窗口打开
 function comment_author_link_window() {
