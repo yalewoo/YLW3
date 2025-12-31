@@ -2,7 +2,10 @@
 <html <?php language_attributes(); ?>>
 	<head>
 		<meta charset="<?php bloginfo('charset'); ?>" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
 		<meta name="renderer" content="webkit">
+		<meta name="theme-color" content="#c41411" media="(prefers-color-scheme: light)">
+		<meta name="theme-color" content="#1a1a2e" media="(prefers-color-scheme: dark)">
 		<link rel="stylesheet" href="<?php bloginfo('stylesheet_url'); ?>" type="text/css" />
 		<link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="<?php bloginfo('rss2_url'); ?>" />
 

@@ -1,32 +1,22 @@
-<!DOCTYPE html>
-<html>
-	<head>
-		<meta charset="utf-8" >
-		<title>页面未找到 - 雅乐网</title>
-		<style type="text/css">
-			body {
-				text-align: center;
-			}
-			h1 {
-				font-size: 30px;
-				font-family: 微软雅黑;
-			}
-			#main {
-				margin-bottom: 20px;
-			}
-		</style>
-	</head>
-	<body>
-		<div id="main">
-			<h1>yalewoo.com 404!</h1>
-			<p>固定连接格式改变：如果连接中含有日期，请手动删除并在网址最后添加.html</p>
-			<p>修改前：http://www.yalewoo.com/2016/01/25/red_black_tree_a_b-tree_view</p>
-			<p>修改后：http://www.yalewoo.com/red_black_tree_a_b-tree_view.html</p>
-			<p style="margin-top: 30px;"><a href="/" style="color: #0066cc; text-decoration: none;">← 返回首页</a></p>
+<?php get_header(); ?>
+<?php include("header-nav.php"); ?>
+
+<div id="container">
+	<section id="blog">
+		<div class="error-404">
+			<h1>404</h1>
+			<h2>页面未找到</h2>
+			<p>抱歉，您访问的页面不存在或已被移动。</p>
+			<p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 1rem;">
+				提示：如果链接中含有日期，请尝试删除日期并在网址最后添加 .html
+			</p>
+			<a href="<?php echo home_url(); ?>">← 返回首页</a>
 		</div>
-    <?php get_footer(); ?>
-	</body>
-</html>
+	</section>
+	<?php get_sidebar(); ?>
+</div>
+
+<?php get_footer(); ?>
     		
 			
 
