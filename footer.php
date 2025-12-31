@@ -23,7 +23,7 @@ var _hmt = _hmt || [];
 <script src="<?php echo get_template_directory_uri(); ?>/js/jquery.lazyload.min.js"></script>
 <script>
 jQuery(function($) {
-    $("img").lazyload({ effect: "fadeIn" });
+    $("img[data-original]").lazyload({ effect: "fadeIn" });
 });
 </script>
 
