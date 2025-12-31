@@ -11,8 +11,11 @@ add_filter( 'emoji_svg_url', '__return_false' );
 add_filter('rest_enabled', '__return_false');
 add_filter('rest_jsonp_enabled', '__return_false');
 
-// 禁用 pingback/trackback（解决本地环境 cron 慢的问题）
-remove_action('do_pings', 'do_all_pings');
+// 禁用 pingback/trackback（解决 cron 慢的问题）
+add_action('init', function() {
+    remove_action('do_pings', 'do_all_pings');
+    wp_clear_scheduled_hook('do_pings');
+}, 1);
 add_filter('pings_open', '__return_false');
 
 remove_action( 'wp_head', 'rest_output_link_wp_head', 10 );
