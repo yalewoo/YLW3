@@ -12,11 +12,11 @@ Author URI: http://www.yalewoo.com/
    CSS变量 - 支持深色模式
 ======================================== */
 :root {
-	/* 品牌色 */
-	--primary-color: #c41411;
-	--primary-hover: #a31210;
-	--accent-color: #faa619;
-	--accent-hover: #e69500;
+	/* 品牌色 - 科技蓝 */
+	--primary-color: #2563eb;
+	--primary-hover: #1d4ed8;
+	--accent-color: #06b6d4;
+	--accent-hover: #0891b2;
 	
 	/* 链接颜色 */
 	--link-color: #2563eb;
@@ -489,6 +489,22 @@ img {
 .toc-h4 a {
 	padding-left: calc(var(--spacing-sm) + 24px);
 	font-size: 0.75rem;
+}
+
+/* 目录分隔线 */
+.toc-divider {
+	height: 1px;
+	background: var(--border-color);
+	margin: var(--spacing-sm) 0;
+}
+
+/* 评论区导航项 */
+.toc-extra a {
+	color: var(--text-secondary);
+}
+
+.toc-extra a:hover {
+	color: var(--primary-color);
 }
 
 /* 目录滚动条美化 */
@@ -1125,11 +1141,13 @@ img {
 	border-radius: var(--radius-md);
 	box-shadow: var(--shadow-xl);
 	z-index: 100;
+	white-space: nowrap;
+	min-width: 500px;
 }
 
 .reward-button:hover .reward-code {
 	display: flex;
-	gap: var(--spacing-lg);
+	gap: var(--spacing-xl);
 	animation: fadeInUp 0.2s ease;
 }
 
@@ -1146,19 +1164,24 @@ img {
 
 .reward-code span {
 	text-align: center;
+	display: inline-block;
+	flex-shrink: 0;
 }
 
 .reward-code img {
-	width: 120px;
-	height: 120px;
+	width: 200px;
+	height: 200px;
 	border-radius: var(--radius-sm);
+	display: block;
+	flex-shrink: 0;
 }
 
 .reward-code b {
 	display: block;
 	margin-top: var(--spacing-sm);
-	font-size: 0.85rem;
+	font-size: 0.9rem;
 	color: var(--text-muted);
+	font-weight: normal;
 }
 
 /* ========================================

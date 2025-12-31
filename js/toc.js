@@ -34,6 +34,31 @@ jQuery(document).ready(function($) {
         tocList.append(tocItem);
     });
     
+    // 添加评论区导航
+    var commentsSection = $('#comments');
+    var respondSection = $('#respond');
+    
+    if (commentsSection.length || respondSection.length) {
+        // 添加分隔线
+        tocList.append('<li class="toc-divider"></li>');
+        
+        // 添加评论区链接
+        if (commentsSection.length) {
+            var commentsItem = $('<li></li>')
+                .addClass('toc-item toc-extra')
+                .html('<a href="#comments">💬 评论区</a>');
+            tocList.append(commentsItem);
+        }
+        
+        // 添加我要评论链接
+        if (respondSection.length) {
+            var respondItem = $('<li></li>')
+                .addClass('toc-item toc-extra')
+                .html('<a href="#respond">✏️ 我要评论</a>');
+            tocList.append(respondItem);
+        }
+    }
+    
     // 点击目录项平滑滚动
     $('.toc-list a').on('click', function(e) {
         e.preventDefault();
