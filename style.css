@@ -649,7 +649,8 @@ img {
 .meta-author::before { content: "\1F464"; }
 .meta-view::before { content: "\1F441"; }
 .meta-comment::before { content: "\1F4AC"; }
-.meta-category::before { content: "\1F4C1"; }
+.meta-category::before { content: "\1F4C2"; } /* 📂 文件夹 */
+.meta-tags::before { content: "\1F3F7"; } /* 🏷️ 标签 */
 
 /* 置顶文章 */
 .sticky {

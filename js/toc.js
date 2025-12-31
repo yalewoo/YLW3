@@ -63,11 +63,15 @@ jQuery(document).ready(function($) {
     $('.toc-list a').on('click', function(e) {
         e.preventDefault();
         var targetId = $(this).attr('href');
-        var targetOffset = $(targetId).offset().top - 80;
+        var target = document.querySelector(targetId);
         
-        $('html, body').animate({
-            scrollTop: targetOffset
-        }, 300);
+        if (target) {
+            var targetOffset = target.getBoundingClientRect().top + window.pageYOffset - 80;
+            window.scrollTo({
+                top: targetOffset,
+                behavior: 'smooth'
+            });
+        }
     });
     
     // 滚动时高亮当前章节

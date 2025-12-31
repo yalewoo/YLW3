@@ -69,8 +69,8 @@
 
                 <br><br>
 
-                <span class="meta-category meta-ico">      <?php the_category(', ') ?> </span>
-                <span class="meta-category meta-ico">      <?php the_tags(' ') ?> </span>
+                <span class="meta-category meta-ico"><?php the_category(', ') ?></span>
+                <span class="meta-tags meta-ico"><?php the_tags(' ') ?></span>
 
                 <?php edit_post_link('Edit', ' &#124; ', ''); ?>
 
