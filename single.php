@@ -16,6 +16,7 @@
 			?>
 		</div>
 </div>
+<main id="main" role="main">
 <div id="container">
 	<!-- 文章目录导航 -->
 	<nav id="toc" class="table-of-contents">
@@ -218,5 +219,6 @@
 
 	</section>
 </div>
+</main>
 
 <?php get_footer(); ?>

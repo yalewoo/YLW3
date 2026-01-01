@@ -289,7 +289,7 @@ img {
 .main_nav > div li a {
 	display: block;
 	padding: var(--spacing-md) var(--spacing-lg);
-	color: rgba(255, 255, 255, 0.9);
+	color: #ffffff;
 	font-size: 1rem;
 	font-weight: 500;
 	letter-spacing: 0.02em;
@@ -847,11 +847,17 @@ img {
 
 #sidebar .tagcloud a,
 #sidebar .widget_tag_cloud a {
-	display: inline;
-	padding: 0 4px;
+	display: inline-block;
+	padding: 8px 12px;
 	color: var(--link-color);
 	transition: color var(--transition-fast);
 	transform: none !important;
+	margin: 6px 4px;
+	min-height: 44px;
+	min-width: 44px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 }
 
 #sidebar .tagcloud a:hover,

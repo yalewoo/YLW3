@@ -365,7 +365,8 @@ echo '<span>第' . $paged . '页（共' . $max_page . '页）</span> ';
     if($paged != $max_page){echo "<a href='" . get_pagenum_link($max_page) . "' class='extend' title='跳转到最后一页'> 尾页</a>";}}   
     if($max_page>1){
 	  echo '<span></span>
-	        <input id="page_input" type="text" max="'.$max_page.'" name="page_num" value="" />
+	        <label for="page_input" class="screen-reader-text">页码</label>
+	        <input id="page_input" type="text" max="'.$max_page.'" name="page_num" value="" aria-label="页码" placeholder="输入页码" />
 	        <a href="#" class="go_btn">跳转</a> ';
 	  }
 

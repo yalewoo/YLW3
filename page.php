@@ -6,6 +6,7 @@
 		<a href="#"><?php the_title();?></a>				
 	</div>
 </div>
+<main id="main" role="main">
 <div id="container">
 
 	<?php if(have_posts()) : ?><?php while(have_posts()) : the_post(); ?>
@@ -207,4 +208,5 @@
 
 	<?//php get_sidebar(); ?>
 </div>
+</main>
 <?php get_footer(); ?>

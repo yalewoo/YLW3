@@ -45,6 +45,7 @@
 	</div>
 </div>
 
+<main id="main" role="main">
 <div id="container">
 
 	
@@ -58,4 +59,5 @@
 
 	<?php get_sidebar(); ?>
 </div>
+</main>
 <?php get_footer(); ?>
