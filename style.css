@@ -2047,17 +2047,6 @@ table tr:last-child td {
 	}
 }
 
-/* 页面载入动画 */
-#blog .post {
-	animation: slideInUp 0.4s ease forwards;
-}
-
-#blog .post:nth-child(1) { animation-delay: 0.1s; }
-#blog .post:nth-child(2) { animation-delay: 0.15s; }
-#blog .post:nth-child(3) { animation-delay: 0.2s; }
-#blog .post:nth-child(4) { animation-delay: 0.25s; }
-#blog .post:nth-child(5) { animation-delay: 0.3s; }
-
 /* 焦点可访问性 */
 a:focus,
 button:focus,
