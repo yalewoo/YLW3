@@ -6,7 +6,6 @@
 		<meta name="renderer" content="webkit">
 		<meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)">
 		<meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
-		<link rel="stylesheet" href="<?php bloginfo('stylesheet_url'); ?>" type="text/css" />
 		<link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="<?php bloginfo('rss2_url'); ?>" />
 
 

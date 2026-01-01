@@ -1,10 +1,6 @@
 <?php get_header(); ?>
 <?php include("header-nav.php"); ?>
 
-<script type="text/javascript" src="<?php bloginfo('template_directory'); ?>/js/dianzan.js"></script>
-<script type="text/javascript" src="<?php bloginfo('template_directory'); ?>/js/toc.js"></script>
-
-
 <div id="mbxdh">
 		<div>
 			

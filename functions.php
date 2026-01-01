@@ -522,5 +522,29 @@ function ylw_load_katex() {
 }
 add_action('wp_footer', 'ylw_load_katex');
 
+// 正确加载主题样式和脚本
+function ylw_enqueue_scripts() {
+    // 加载主题样式
+    wp_enqueue_style('ylw-style', get_stylesheet_uri(), array(), '3.0');
+    
+    // 根据不同页面条件加载 JS 文件
+    // 归档页、首页、作者页加载跳转页码脚本
+    if (is_archive() || is_home() || is_author()) {
+        wp_enqueue_script('ylw-tiaozhuanyema', get_template_directory_uri() . '/js/tiaozhuanyema.js', array(), '1.0', true);
+    }
+    
+    // 单篇文章页加载点赞和目录脚本
+    if (is_single()) {
+        wp_enqueue_script('ylw-dianzan', get_template_directory_uri() . '/js/dianzan.js', array(), '1.0', true);
+        wp_enqueue_script('ylw-toc', get_template_directory_uri() . '/js/toc.js', array(), '1.0', true);
+    }
+    
+    // 评论表单页面加载表情显示脚本
+    if (is_singular() && comments_open()) {
+        wp_enqueue_script('ylw-show-smilies', get_template_directory_uri() . '/js/show_smilies.js', array(), '1.0', true);
+    }
+}
+add_action('wp_enqueue_scripts', 'ylw_enqueue_scripts');
+
 
 ?>
