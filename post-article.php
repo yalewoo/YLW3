@@ -3,7 +3,7 @@
 			
 			<div class="post-thumb">
 				<a href="<?php the_permalink(); ?>" title="<?php the_title(); ?>">
-					<img src="<?php echo catch_first_image() ?>" alt="<?php the_title(); ?>" loading="lazy" />
+					<img src="<?php echo esc_url( catch_first_image() ); ?>" alt="<?php the_title(); ?>" loading="lazy" />
 				</a>
 			</div>
 

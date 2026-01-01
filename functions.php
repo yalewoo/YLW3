@@ -20,6 +20,38 @@ add_filter('pings_open', '__return_false');
 remove_action( 'wp_head', 'rest_output_link_wp_head', 10 );
 remove_action( 'wp_head', 'wp_oembed_add_discovery_links', 10 );
 //add_filter('wp_list_bookmarks','rbt_friend_links'); // 已注释：函数未定义
+
+// 支持缩略图，使用 WordPress 默认尺寸
+add_theme_support( 'post-thumbnails' );
+function catch_first_image() {
+    global $post;
+
+    // 优先使用特色图的默认缩略尺寸，避免首页加载原图
+    if ( $post && has_post_thumbnail( $post->ID ) ) {
+        $thumb = wp_get_attachment_image_src( get_post_thumbnail_id( $post->ID ), 'medium' );
+        if ( $thumb && isset( $thumb[0] ) ) {
+            return $thumb[0];
+        }
+    }
+
+    // 回退到正文里的第一张图片，并尝试用附件 ID 下采样为 medium
+    if ( isset( $post->post_content ) && preg_match( '/<img[^>]+src=[\'"]([^\'"]+)[\'"][^>]*>/i', $post->post_content, $matches ) ) {
+        $src = $matches[1];
+        $attachment_id = attachment_url_to_postid( $src );
+
+        if ( $attachment_id ) {
+            $down = image_downsize( $attachment_id, 'medium' );
+            if ( $down && isset( $down[0] ) ) {
+                return $down[0];
+            }
+        }
+
+        return $src;
+    }
+
+    // 兜底使用主题内的默认占位图
+    return get_template_directory_uri() . '/img/default.png';
+}
 add_filter( 'pre_option_link_manager_enabled', '__return_true' );
 
 //去掉Embed 功能
@@ -176,27 +208,6 @@ function new_excerpt_length($length) {
 add_filter('excerpt_length', 'new_excerpt_length');
       
       
-//支持缩略图
-add_theme_support( "post-thumbnails" );
-function catch_first_image() {
-	global $post, $posts;
-	$first_img = '';
-	
-	if ( has_post_thumbnail() ) {
-		$post2 = get_the_post_thumbnail( $post->ID );
-		$output = preg_match_all('/<img.+src=[\'"]([^\'"]+)[\'"].*>/i', $post2, $matches);	
-	}
-	else
-	{
-		$output = preg_match_all('/<img.+src=[\'"]([^\'"]+)[\'"].*>/i', $post->post_content, $matches);
-	}
-		
-	$first_img = $matches[1][0];
-	if ( empty( $first_img ) ) {
-		return get_template_directory_uri() . '/img/default.png';
-	}
-	return $first_img;
-}
 //修改摘要样式
 function new_excerpt_more( $more ) {
 	return '';
