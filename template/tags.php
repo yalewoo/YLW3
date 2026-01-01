@@ -16,8 +16,8 @@
 				<a href="<?php the_permalink(); ?>" title="<?php the_title(); ?>"><?php the_title(); ?></a>
 			</h2>
 			
-            <div class="post-meta">
-                发布时间：<?php the_modified_time('Y年n月j日')?>
+			<div class="post-meta">
+				发布时间：<?php the_time('Y年n月j日')?>
 
                 <?php _e('by'); ?> <?php the_author_posts_link(); ?>
                 <?php comments_popup_link('快抢沙发 &#187;', '沙发被抢 &#187;', '% 评论 &#187;'); ?> <?php edit_post_link('Edit', ' &#124; ', ''); ?>

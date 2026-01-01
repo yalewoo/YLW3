@@ -36,7 +36,7 @@
 				<?php the_excerpt(); ?>
 				
 				<div class="post-meta">
-					<span class="meta-time meta-ico"><?php the_modified_time('Y-m-d'); ?></span>
+					<span class="meta-time meta-ico"><?php the_time('Y-m-d'); ?></span>
 					<span class="meta-author meta-ico"><?php the_author_posts_link(); ?></span>
 					<span class="meta-view meta-ico"><?php if(function_exists('the_views')) { the_views(); } ?></span>
 					<span class="meta-comment meta-ico"><?php comments_popup_link('0', '1', '%'); ?></span>
