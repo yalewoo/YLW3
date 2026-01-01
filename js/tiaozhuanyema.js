@@ -1,42 +1,83 @@
-jQuery(document).ready( function($){
-  //.page_nav a.go_btn为确认按钮，点击执行
-  $('.page_navi a.go_btn').on('click',function(event){
-    event.preventDefault(); //取消默认动作
-    page_input = $('#page_input'); //获取输入框的值
-    page_max = page_input.attr('max'); //获取输入框中的max属性的值，就是最大页码
-    if(page_input.val()==''){
-      alert('请输入页码');
-      return false;
+/**
+ * 页码跳转功能 - 原生 JavaScript 实现
+ * 无需 jQuery 依赖
+ */
+(function() {
+    function initPagination() {
+        // 页码输入框跳转
+        const goBtn = document.querySelector('.page_navi a.go_btn');
+        const pageInput = document.getElementById('page_input');
+        
+        if (!goBtn || !pageInput) return;
+        
+        goBtn.addEventListener('click', function(event) {
+            event.preventDefault(); // 取消默认动作
+            
+            const pageMax = pageInput.getAttribute('max'); // 获取最大页码
+            const inputValue = pageInput.value.trim();
+            
+            if (inputValue === '') {
+                alert('请输入页码');
+                return false;
+            }
+            
+            const pageNum = parseInt(inputValue);
+            const maxNum = parseInt(pageMax);
+            
+            if (pageNum < 1 || pageNum > maxNum) {
+                alert(`请输入1至${pageMax}之间的数字`);
+                return false;
+            }
+            
+            // 从页码列表中获取任意一个链接，此处获取第二个链接
+            const pageLinks = document.querySelectorAll('.page_navi a');
+            if (pageLinks.length < 3) {
+                console.error('页码链接不足');
+                return false;
+            }
+            
+            const pageLink = pageLinks[2].getAttribute('href');
+            // 将页码数字替换
+            const goLink = pageLink.replace(/\/page\/([0-9]+)/g, `/page/${pageNum}`);
+            location.href = goLink; // 跳转
+        });
+        
+        // 页码输入框 - 仅允许数字和禁用输入法
+        pageInput.addEventListener('keypress', function(event) {
+            const keyCode = event.keyCode || event.which;
+            // 仅允许数字 48-57 (0-9)
+            if (!(keyCode >= 48 && keyCode <= 57)) {
+                return false;
+            }
+        });
+        
+        pageInput.addEventListener('focus', function() {
+            // 禁用输入法
+            this.style.imeMode = 'disabled';
+        });
+        
+        pageInput.addEventListener('paste', function(event) {
+            event.preventDefault(); // 阻止默认粘贴
+            
+            // 获取剪切板的内容
+            const clipboard = (event.clipboardData || window.clipboardData).getData('text');
+            
+            // 仅允许全数字内容
+            if (/^\d+$/.test(clipboard)) {
+                // 手动插入纯数字
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                const text = this.value;
+                this.value = text.substring(0, start) + clipboard + text.substring(end);
+                this.selectionStart = this.selectionEnd = start + clipboard.length;
+            }
+        });
     }
-    if((page_input.val()<1) || (page_input.val()>parseInt(page_max))){
-      alert('请输入1至' + page_max + '之间的数字');
-      return false;
+    
+    // 在 DOM 加载完成后初始化
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPagination);
+    } else {
+        initPagination();
     }
-
-    page_links = $('.page_navi a').eq(2).attr('href');//从页码列表中获取任意一个链接,此处获取第二个链接
-    go_link = page_links.replace(/\/page\/([0-9]+)/g, '/page/'+page_input.val()); //将页码数字替换
-    location.href = go_link; //跳转   
-  });
-  $.fn.onlyNum = function onlyNum() {
-     $(this).keypress(function (event) {
-         var eventObj = event || e;
-         var keyCode = eventObj.keyCode || eventObj.which;
-         if ((keyCode >= 48 && keyCode <= 57))
-           return true;
-         else
-             return false;
-     }).focus(function () {
-     //禁用输入法
-         this.style.imeMode = 'disabled';
-     }).bind("paste", function () {
-     //获取剪切板的内容
-         var clipboard = window.clipboardData.getData("Text");
-         if (/^\d+$/.test(clipboard))
-             return true;
-         else
-             return false;
-     });
- };
- //#page_input为页码输入框
- $('#page_input').onlyNum();
-});
+})();
