@@ -15,8 +15,8 @@ Author URI: http://www.yalewoo.com/
 	/* 品牌色 - 科技蓝 */
 	--primary-color: #2563eb;
 	--primary-hover: #1d4ed8;
-	--accent-color: #06b6d4;
-	--accent-hover: #0891b2;
+	--accent-color: #0891b2;
+	--accent-hover: #0e7490;
 	
 	/* 链接颜色 */
 	--link-color: #2563eb;
@@ -306,6 +306,12 @@ img {
 .main_nav > div li.current-menu-item,
 .main_nav > div li.current-menu-parent {
 	background: var(--accent-color);
+}
+
+.main_nav > div li.current-menu-item a,
+.main_nav > div li.current-menu-parent a {
+	background: transparent;
+	color: #ffffff;
 }
 
 /* 下拉菜单 */

@@ -50,8 +50,12 @@
                 
                 
                 
-                <span class="meta-view meta-ico"><?php if(function_exists('the_views')) { the_views(); } ?></span>
-                <span class="meta-comment meta-ico"><?php comments_popup_link('0', '1', '%'); ?></span>
+                <span class="meta-view meta-ico" title="浏览次数"><?php if(function_exists('the_views')) { the_views(); } ?></span>
+                <span class="meta-comment meta-ico" title="评论数">
+                    <a href="<?php comments_link(); ?>" data-tooltip="<?php comments_number('0 条评论', '1 条评论', '% 条评论'); ?>">
+                        <?php comments_number('0', '1', '%'); ?>
+                    </a>
+                </span>
 
                 <br><br>
 
