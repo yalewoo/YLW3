@@ -6,6 +6,11 @@
 		<meta name="renderer" content="webkit">
 		<meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)">
 		<meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
+		
+		<!-- 性能优化：预连接百度统计 -->
+		<link rel="preconnect" href="https://hm.baidu.com" crossorigin>
+		<link rel="dns-prefetch" href="https://hm.baidu.com">
+		
 		<link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="<?php bloginfo('rss2_url'); ?>" />
 
 
