@@ -51,26 +51,10 @@
             }
         });
         
-        pageInput.addEventListener('focus', function() {
-            // 禁用输入法
-            this.style.imeMode = 'disabled';
-        });
-        
-        pageInput.addEventListener('paste', function(event) {
-            event.preventDefault(); // 阻止默认粘贴
-            
-            // 获取剪切板的内容
-            const clipboard = (event.clipboardData || window.clipboardData).getData('text');
-            
-            // 仅允许全数字内容
-            if (/^\d+$/.test(clipboard)) {
-                // 手动插入纯数字
-                const start = this.selectionStart;
-                const end = this.selectionEnd;
-                const text = this.value;
-                this.value = text.substring(0, start) + clipboard + text.substring(end);
-                this.selectionStart = this.selectionEnd = start + clipboard.length;
-            }
+        // 输入验证 - 只保留数字，允许粘贴
+        pageInput.addEventListener('input', function() {
+            // 移除非数字字符
+            this.value = this.value.replace(/[^\d]/g, '');
         });
     }
     
