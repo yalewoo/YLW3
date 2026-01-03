@@ -1,9 +1,13 @@
-<?php if(have_posts()) : ?><?php while(have_posts()) : the_post(); ?>
+<?php if(have_posts()) : ?><?php $post_index = 0; while(have_posts()) : the_post(); $post_index++; ?>
 		<article <?php post_class('post'); ?> id="post-<?php the_ID(); ?>">
 			
 			<div class="post-thumb">
 				<a href="<?php the_permalink(); ?>" title="<?php the_title(); ?>">
-					<img src="<?php echo esc_url( catch_first_image() ); ?>" alt="<?php the_title(); ?>" loading="lazy" />
+					<?php if ($post_index <= 3) : ?>
+						<img src="<?php echo esc_url( catch_first_image() ); ?>" alt="<?php the_title(); ?>" fetchpriority="high" />
+					<?php else : ?>
+						<img src="<?php echo esc_url( catch_first_image() ); ?>" alt="<?php the_title(); ?>" loading="lazy" />
+					<?php endif; ?>
 				</a>
 			</div>
 
