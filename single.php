@@ -15,21 +15,62 @@
 <main id="main" role="main">
 <div id="container">
 	<aside class="sidebar-wrapper">
-		<!-- 文章目录导航 -->
-		<nav id="toc" class="table-of-contents">
-			<div class="toc-header">目录</div>
-			<ul class="toc-list"></ul>
-		</nav>
+		<div class="sidebar-tabs">
+			<button class="sidebar-tab active" data-tab="toc">📑 目录</button>
+			<?php 
+			if(have_posts()) {
+				global $post;
+				$current_post_id = get_the_ID();
+				$series_data = ylw_get_series_posts($current_post_id);
+				if (!empty($series_data['posts'])) {
+					echo '<button class="sidebar-tab" data-tab="series">📚 系列</button>';
+				}
+			}
+			?>
+		</div>
 		
+		<!-- 文章目录导航 -->
+		<div class="sidebar-content active" data-content="toc">
+			<nav id="toc" class="table-of-contents">
+				<ul class="toc-list"></ul>
+			</nav>
+		</div>
+		
+		<!-- 系列教程导航 -->
 		<?php 
-		// 系列教程导航（侧边栏）
 		if(have_posts()) {
 			global $post;
 			$current_post_id = get_the_ID();
-			ylw_display_series_navigation_sidebar($current_post_id);
+			$series_data = ylw_get_series_posts($current_post_id);
+			if (!empty($series_data['posts'])) {
+				echo '<div class="sidebar-content" data-content="series">';
+				ylw_display_series_navigation_sidebar($current_post_id);
+				echo '</div>';
+			}
 		}
 		?>
 	</aside>
+	
+	<script>
+	document.addEventListener('DOMContentLoaded', function() {
+		const tabs = document.querySelectorAll('.sidebar-tab');
+		const contents = document.querySelectorAll('.sidebar-content');
+		
+		tabs.forEach(tab => {
+			tab.addEventListener('click', function() {
+				const targetTab = this.getAttribute('data-tab');
+				
+				// 移除所有 active 状态
+				tabs.forEach(t => t.classList.remove('active'));
+				contents.forEach(c => c.classList.remove('active'));
+				
+				// 添加当前 active 状态
+				this.classList.add('active');
+				document.querySelector(`[data-content="${targetTab}"]`).classList.add('active');
+			});
+		});
+	});
+	</script>
 
 	<?php if(have_posts()) : ?><?php while(have_posts()) : the_post(); ?>
 	<section class="whole_article" id="article-<?php the_ID(); ?>">
