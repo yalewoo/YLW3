@@ -14,11 +14,22 @@
 </div>
 <main id="main" role="main">
 <div id="container">
-	<!-- 文章目录导航 -->
-	<nav id="toc" class="table-of-contents">
-		<div class="toc-header">目录</div>
-		<ul class="toc-list"></ul>
-	</nav>
+	<aside class="sidebar-wrapper">
+		<!-- 文章目录导航 -->
+		<nav id="toc" class="table-of-contents">
+			<div class="toc-header">目录</div>
+			<ul class="toc-list"></ul>
+		</nav>
+		
+		<?php 
+		// 系列教程导航（侧边栏）
+		if(have_posts()) {
+			global $post;
+			$current_post_id = get_the_ID();
+			ylw_display_series_navigation_sidebar($current_post_id);
+		}
+		?>
+	</aside>
 
 	<?php if(have_posts()) : ?><?php while(have_posts()) : the_post(); ?>
 	<section class="whole_article" id="article-<?php the_ID(); ?>">
@@ -78,7 +89,6 @@
 
                 
 			</div>
-			
 			
             <div id="article-content">
 				<?php the_content(); ?>

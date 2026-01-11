@@ -116,6 +116,1079 @@ if(function_exists('register_nav_menus')){
 	'footer_menu' => '页脚菜单'
 ) );
 }
+
+// ========== 系列教程功能 ==========
+
+/**
+ * 注册系列教程自定义分类法
+ */
+function ylw_register_series_taxonomy() {
+    $labels = array(
+        'name'              => '系列教程',
+        'singular_name'     => '系列',
+        'search_items'      => '搜索系列',
+        'all_items'         => '所有系列',
+        'parent_item'       => '父系列',
+        'parent_item_colon' => '父系列：',
+        'edit_item'         => '编辑系列',
+        'update_item'       => '更新系列',
+        'add_new_item'      => '添加新系列',
+        'new_item_name'     => '新系列名称',
+        'menu_name'         => '系列教程',
+    );
+
+    $args = array(
+        'hierarchical'      => true, // 支持三级层级
+        'labels'            => $labels,
+        'show_ui'           => true,
+        'show_admin_column' => true,
+        'query_var'         => true,
+        'rewrite'           => array('slug' => 'series'),
+        'show_in_rest'      => true,
+        'meta_box_cb'       => false, // 我们会创建自定义 Meta Box
+    );
+
+    register_taxonomy('post_series', array('post'), $args);
+}
+add_action('init', 'ylw_register_series_taxonomy');
+
+/**
+ * 添加系列教程 Meta Box
+ */
+function ylw_add_series_meta_box() {
+    add_meta_box(
+        'ylw_series_meta_box',
+        '📚 系列教程',
+        'ylw_series_meta_box_callback',
+        'post',
+        'side',
+        'high'
+    );
+}
+add_action('add_meta_boxes', 'ylw_add_series_meta_box');
+
+/**
+ * 系列教程 Meta Box 回调函数
+ */
+function ylw_series_meta_box_callback($post) {
+    wp_nonce_field('ylw_series_nonce_action', 'ylw_series_nonce');
+    
+    $current_series = wp_get_post_terms($post->ID, 'post_series', array('fields' => 'ids'));
+    $selected_series = !empty($current_series) ? $current_series[0] : '';
+    $series_order = get_post_meta($post->ID, 'series_order', true);
+    $parent_post = get_post_meta($post->ID, 'series_parent_post', true);
+    
+    $all_series = get_terms(array(
+        'taxonomy' => 'post_series',
+        'hide_empty' => false,
+    ));
+    ?>
+    <div style="margin-bottom: 15px;">
+        <label for="ylw_post_series" style="display: block; margin-bottom: 5px; font-weight: 600;">
+            所属系列：
+        </label>
+        <select name="ylw_post_series" id="ylw_post_series" style="width: 100%;" onchange="ylwLoadSeriesPosts(this.value, <?php echo $post->ID; ?>)">
+            <option value="">-- 不属于任何系列 --</option>
+            <?php foreach ($all_series as $series) : ?>
+                <option value="<?php echo esc_attr($series->term_id); ?>" <?php selected($selected_series, $series->term_id); ?>>
+                    <?php echo esc_html($series->name); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    
+    <div style="margin-bottom: 15px;" id="ylw-parent-post-wrapper">
+        <label for="ylw_parent_post" style="display: block; margin-bottom: 5px; font-weight: 600;">
+            父章节：
+        </label>
+        <select name="ylw_parent_post" id="ylw_parent_post" style="width: 100%;">
+            <option value="">-- 顶级章节 --</option>
+            <?php
+            if ($selected_series) :
+                $series_posts = get_posts(array(
+                    'post_type' => 'post',
+                    'posts_per_page' => -1,
+                    'post__not_in' => array($post->ID),
+                    'tax_query' => array(
+                        array(
+                            'taxonomy' => 'post_series',
+                            'field' => 'term_id',
+                            'terms' => $selected_series,
+                        ),
+                    ),
+                    'orderby' => 'meta_value_num date',
+                    'meta_key' => 'series_order',
+                    'order' => 'ASC',
+                ));
+                
+                ylw_render_hierarchical_options($series_posts, 0, '', $parent_post);
+            endif;
+            ?>
+        </select>
+        <p class="description" style="margin-top: 5px; font-size: 12px; color: #666;">
+            💡 选择父章节可创建三级结构（章 → 节 → 小节）
+        </p>
+    </div>
+    
+    <div>
+        <label for="ylw_series_order" style="display: block; margin-bottom: 5px; font-weight: 600;">
+            排序值：
+        </label>
+        <input type="number" name="ylw_series_order" id="ylw_series_order" 
+               value="<?php echo esc_attr($series_order); ?>" 
+               min="1" step="1" style="width: 100%;" 
+               placeholder="例如：1, 2, 3..."/>
+        <p class="description" style="margin-top: 5px; font-size: 12px; color: #666;">
+            💡 同级内排序，数字越小越靠前
+        </p>
+    </div>
+    
+    <script>
+    function ylwLoadSeriesPosts(seriesId, currentPostId) {
+        if (!seriesId) {
+            jQuery('#ylw_parent_post').html('<option value="">-- 顶级章节 --</option>');
+            return;
+        }
+        
+        jQuery.post(ajaxurl, {
+            action: 'ylw_get_series_posts',
+            series_id: seriesId,
+            current_post_id: currentPostId
+        }, function(response) {
+            if (response.success) {
+                jQuery('#ylw_parent_post').html(response.data.options);
+            }
+        });
+    }
+    </script>
+    <?php
+}
+
+/**
+ * 保存系列教程 Meta 数据
+ */
+function ylw_save_series_meta($post_id) {
+    // 验证 nonce
+    if (!isset($_POST['ylw_series_nonce']) || !wp_verify_nonce($_POST['ylw_series_nonce'], 'ylw_series_nonce_action')) {
+        return;
+    }
+    
+    // 检查自动保存
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+    
+    // 检查权限
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+    
+    // 保存系列选择
+    if (isset($_POST['ylw_post_series'])) {
+        $series_id = intval($_POST['ylw_post_series']);
+        if ($series_id > 0) {
+            wp_set_post_terms($post_id, array($series_id), 'post_series');
+        } else {
+            wp_set_post_terms($post_id, array(), 'post_series');
+        }
+    }
+    
+    // 保存父文章
+    if (isset($_POST['ylw_parent_post'])) {
+        $parent_id = intval($_POST['ylw_parent_post']);
+        if ($parent_id > 0) {
+            update_post_meta($post_id, 'series_parent_post', $parent_id);
+        } else {
+            delete_post_meta($post_id, 'series_parent_post');
+        }
+    }
+    
+    // 保存章节顺序
+    if (isset($_POST['ylw_series_order'])) {
+        $order = intval($_POST['ylw_series_order']);
+        if ($order > 0) {
+            update_post_meta($post_id, 'series_order', $order);
+        } else {
+            delete_post_meta($post_id, 'series_order');
+        }
+    }
+}
+add_action('save_post', 'ylw_save_series_meta');
+
+/**
+ * AJAX 获取系列文章列表
+ */
+function ylw_ajax_get_series_posts() {
+    $series_id = intval($_POST['series_id']);
+    $current_post_id = intval($_POST['current_post_id']);
+    
+    $posts = get_posts(array(
+        'post_type' => 'post',
+        'posts_per_page' => -1,
+        'post__not_in' => array($current_post_id),
+        'tax_query' => array(
+            array(
+                'taxonomy' => 'post_series',
+                'field' => 'term_id',
+                'terms' => $series_id,
+            ),
+        ),
+        'orderby' => 'meta_value_num date',
+        'meta_key' => 'series_order',
+        'order' => 'ASC',
+    ));
+    
+    $options = '<option value="">-- 顶级章节 --</option>';
+    if (!empty($posts)) {
+        $options .= ylw_render_hierarchical_options($posts, 0, '', '', true);
+    }
+    
+    wp_send_json_success(array('options' => $options));
+}
+add_action('wp_ajax_ylw_get_series_posts', 'ylw_ajax_get_series_posts');
+
+/**
+ * 递归渲染层级选项
+ */
+function ylw_render_hierarchical_options($posts, $parent_id = 0, $prefix = '', $selected = '', $return_html = false, $depth = 0) {
+    // 防止无限递归，最多3级
+    if ($depth >= 3) {
+        return $return_html ? '' : null;
+    }
+    
+    $html = '';
+    
+    foreach ($posts as $post) {
+        $post_parent = get_post_meta($post->ID, 'series_parent_post', true);
+        $post_parent = $post_parent ? intval($post_parent) : 0;
+        
+        if ($post_parent == $parent_id) {
+            $selected_attr = ($selected == $post->ID) ? 'selected' : '';
+            $option = '<option value="' . esc_attr($post->ID) . '" ' . $selected_attr . '>';
+            $option .= esc_html($prefix . $post->post_title);
+            $option .= '</option>';
+            
+            if ($return_html) {
+                $html .= $option;
+            } else {
+                echo $option;
+            }
+            
+            // 递归渲染子章节
+            if ($return_html) {
+                $html .= ylw_render_hierarchical_options($posts, $post->ID, $prefix . '— ', $selected, true, $depth + 1);
+            } else {
+                ylw_render_hierarchical_options($posts, $post->ID, $prefix . '— ', $selected, false, $depth + 1);
+            }
+        }
+    }
+    
+    if ($return_html) {
+        return $html;
+    }
+}
+
+/**
+ * 获取文章所属系列的所有文章（按层级顺序）
+ */
+function ylw_get_series_posts($post_id) {
+    error_log("开始获取文章 $post_id 的系列信息");
+    
+    $series = wp_get_post_terms($post_id, 'post_series');
+    
+    error_log("wp_get_post_terms 返回: " . print_r($series, true));
+    
+    if (empty($series)) {
+        error_log("文章不属于任何系列");
+        return array();
+    }
+    
+    $series_term = $series[0];
+    error_log("文章属于系列: " . $series_term->name . " (ID: " . $series_term->term_id . ")");
+    
+    $args = array(
+        'post_type' => 'post',
+        'post_status' => 'publish',
+        'posts_per_page' => -1,
+        'tax_query' => array(
+            array(
+                'taxonomy' => 'post_series',
+                'field' => 'term_id',
+                'terms' => $series_term->term_id,
+            ),
+        ),
+        'orderby' => 'meta_value_num date',
+        'meta_key' => 'series_order',
+        'order' => 'ASC',
+    );
+    
+    $all_posts = get_posts($args);
+    
+    error_log("查询到 " . count($all_posts) . " 篇文章");
+    
+    // 构建层级结构
+    $hierarchical_posts = ylw_build_hierarchical_posts($all_posts);
+    
+    error_log("构建层级结构完成，层级数: " . count($hierarchical_posts));
+    
+    return array(
+        'series' => $series_term,
+        'posts' => $all_posts,
+        'hierarchical' => $hierarchical_posts,
+    );
+}
+
+/**
+ * 构建文章层级结构
+ */
+function ylw_build_hierarchical_posts($posts, $parent_id = 0, &$flat_list = null, $depth = 0) {
+    // 防止无限递归，最多3级
+    if ($depth >= 3) {
+        return array();
+    }
+    
+    if ($flat_list === null) {
+        $flat_list = array();
+    }
+    
+    $result = array();
+    
+    foreach ($posts as $post) {
+        $post_parent = get_post_meta($post->ID, 'series_parent_post', true);
+        $post_parent = $post_parent ? intval($post_parent) : 0;
+        
+        if ($post_parent == $parent_id) {
+            $flat_list[] = $post;
+            
+            $item = array(
+                'post' => $post,
+                'children' => ylw_build_hierarchical_posts($posts, $post->ID, $flat_list, $depth + 1),
+            );
+            
+            $result[] = $item;
+        }
+    }
+    
+    return $result;
+}
+
+/**
+ * 将层级结构扁平化为列表（用于导航）
+ */
+function ylw_flatten_hierarchical_posts($hierarchical, $level = 0, &$result = null, $depth = 0) {
+    // 防止无限递归
+    if ($depth >= 10) {
+        return $result ? $result : array();
+    }
+    
+    if ($result === null) {
+        $result = array();
+    }
+    
+    foreach ($hierarchical as $item) {
+        $result[] = array(
+            'post' => $item['post'],
+            'level' => $level,
+        );
+        
+        if (!empty($item['children'])) {
+            ylw_flatten_hierarchical_posts($item['children'], $level + 1, $result, $depth + 1);
+        }
+    }
+    
+    return $result;
+}
+
+/**
+ * 获取系列中的上一篇和下一篇（基于扁平化列表）
+ */
+function ylw_get_series_adjacent_posts($post_id) {
+    $series_data = ylw_get_series_posts($post_id);
+    
+    if (empty($series_data['posts'])) {
+        return array('prev' => null, 'next' => null);
+    }
+    
+    $flat_posts = array();
+    
+    // 如果有层级结构，扁平化
+    if (!empty($series_data['hierarchical'])) {
+        $flat_posts = ylw_flatten_hierarchical_posts($series_data['hierarchical']);
+    } else {
+        // 否则直接使用文章列表
+        foreach ($series_data['posts'] as $post) {
+            $flat_posts[] = array('post' => $post, 'level' => 0);
+        }
+    }
+    
+    $current_index = -1;
+    
+    foreach ($flat_posts as $index => $item) {
+        if ($item['post']->ID == $post_id) {
+            $current_index = $index;
+            break;
+        }
+    }
+    
+    $prev = ($current_index > 0) ? $flat_posts[$current_index - 1]['post'] : null;
+    $next = ($current_index < count($flat_posts) - 1) ? $flat_posts[$current_index + 1]['post'] : null;
+    
+    return array('prev' => $prev, 'next' => $next);
+}
+
+/**
+ * 显示系列导航盒子（支持层级）
+ */
+function ylw_display_series_navigation($post_id) {
+    $series_data = ylw_get_series_posts($post_id);
+    
+    // 如果文章不属于任何系列，不显示
+    if (empty($series_data['posts'])) {
+        return;
+    }
+    
+    $series = $series_data['series'];
+    $hierarchical = $series_data['hierarchical'];
+    $all_posts = $series_data['posts'];
+    $series_url = get_term_link($series);
+    
+    ?>
+    <div class="series-navigation-box">
+        <div class="series-header">
+            <span class="series-icon">📚</span>
+            <h3 class="series-title">
+                本文属于系列：<a href="<?php echo esc_url($series_url); ?>"><?php echo esc_html($series->name); ?></a>
+            </h3>
+        </div>
+        
+        <ol class="series-list">
+            <?php 
+            // 如果有层级结构，显示层级
+            if (!empty($hierarchical)) {
+                error_log("使用层级结构渲染");
+                ylw_render_series_list($hierarchical, $post_id, 0);
+            } else {
+                error_log("使用扁平列表渲染，文章数: " . count($all_posts));
+                // 否则显示扁平列表
+                foreach ($all_posts as $series_post) {
+                    $is_current = ($series_post->ID == $post_id);
+                    ?>
+                    <li class="series-item <?php echo $is_current ? 'current' : ''; ?>">
+                        <?php if ($is_current) : ?>
+                            <span class="series-current-icon">★</span>
+                            <span class="series-post-title"><?php echo esc_html($series_post->post_title); ?></span>
+                            <span class="series-current-label">← 当前</span>
+                        <?php else : ?>
+                            <a href="<?php echo esc_url(get_permalink($series_post->ID)); ?>">
+                                <?php echo esc_html($series_post->post_title); ?>
+                            </a>
+                        <?php endif; ?>
+                    </li>
+                    <?php
+                }
+            }
+            ?>
+        </ol>
+        
+        <div class="series-nav-buttons">
+            <?php 
+            $adjacent = ylw_get_series_adjacent_posts($post_id);
+            ?>
+            <div class="series-nav-prev">
+                <?php if ($adjacent['prev']) : ?>
+                    <a href="<?php echo esc_url(get_permalink($adjacent['prev']->ID)); ?>" class="series-nav-link">
+                        ← 上一章：<?php echo esc_html($adjacent['prev']->post_title); ?>
+                    </a>
+                <?php else : ?>
+                    <span class="series-nav-disabled">← 已是第一章</span>
+                <?php endif; ?>
+            </div>
+            
+            <div class="series-nav-next">
+                <?php if ($adjacent['next']) : ?>
+                    <a href="<?php echo esc_url(get_permalink($adjacent['next']->ID)); ?>" class="series-nav-link">
+                        下一章：<?php echo esc_html($adjacent['next']->post_title); ?> →
+                    </a>
+                <?php else : ?>
+                    <span class="series-nav-disabled">已是最后一章 →</span>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+    <?php
+}
+
+/**
+ * 递归渲染系列文章列表（支持层级）
+ */
+function ylw_render_series_list($hierarchical, $current_post_id, $level = 0, $depth = 0) {
+    // 防止无限递归
+    if ($depth >= 10) {
+        return;
+    }
+    
+    foreach ($hierarchical as $item) {
+        $series_post = $item['post'];
+        $is_current = ($series_post->ID == $current_post_id);
+        $indent_class = 'level-' . $level;
+        
+        ?>
+        <li class="series-item <?php echo $is_current ? 'current' : ''; ?> <?php echo $indent_class; ?>" style="padding-left: <?php echo $level * 20; ?>px;">
+            <?php if ($is_current) : ?>
+                <span class="series-current-icon">★</span>
+                <span class="series-post-title"><?php echo esc_html($series_post->post_title); ?></span>
+                <span class="series-current-label">← 当前</span>
+            <?php else : ?>
+                <a href="<?php echo esc_url(get_permalink($series_post->ID)); ?>">
+                    <?php echo esc_html($series_post->post_title); ?>
+                </a>
+            <?php endif; ?>
+        </li>
+        <?php
+        
+        // 递归渲染子章节
+        if (!empty($item['children'])) {
+            ylw_render_series_list($item['children'], $current_post_id, $level + 1, $depth + 1);
+        }
+    }
+}
+
+/**
+ * 侧边栏显示系列导航（简洁版）
+ */
+function ylw_display_series_navigation_sidebar($post_id) {
+    $series_data = ylw_get_series_posts($post_id);
+    
+    // 如果文章不属于任何系列，不显示
+    if (empty($series_data['posts'])) {
+        return;
+    }
+    
+    $series = $series_data['series'];
+    $hierarchical = $series_data['hierarchical'];
+    $all_posts = $series_data['posts'];
+    $series_url = get_term_link($series);
+    
+    ?>
+    <nav class="series-sidebar">
+        <div class="series-sidebar-header">
+            📚 系列教程
+        </div>
+        <div class="series-sidebar-title">
+            <a href="<?php echo esc_url($series_url); ?>"><?php echo esc_html($series->name); ?></a>
+        </div>
+        <ol class="series-sidebar-list">
+            <?php 
+            // 如果有层级结构，显示层级
+            if (!empty($hierarchical)) {
+                ylw_render_series_sidebar_list($hierarchical, $post_id, 0);
+            } else {
+                // 否则显示扁平列表
+                foreach ($all_posts as $series_post) {
+                    $is_current = ($series_post->ID == $post_id);
+                    ?>
+                    <li class="<?php echo $is_current ? 'current' : ''; ?>">
+                        <?php if ($is_current) : ?>
+                            <span><?php echo esc_html($series_post->post_title); ?></span>
+                        <?php else : ?>
+                            <a href="<?php echo esc_url(get_permalink($series_post->ID)); ?>">
+                                <?php echo esc_html($series_post->post_title); ?>
+                            </a>
+                        <?php endif; ?>
+                    </li>
+                    <?php
+                }
+            }
+            ?>
+        </ol>
+    </nav>
+    <?php
+}
+
+/**
+ * 递归渲染侧边栏系列文章列表
+ */
+function ylw_render_series_sidebar_list($hierarchical, $current_post_id, $level = 0, $depth = 0) {
+    // 防止无限递归
+    if ($depth >= 10) {
+        return;
+    }
+    
+    foreach ($hierarchical as $item) {
+        $series_post = $item['post'];
+        $is_current = ($series_post->ID == $current_post_id);
+        
+        ?>
+        <li class="<?php echo $is_current ? 'current' : ''; ?> level-<?php echo $level; ?>" style="padding-left: <?php echo $level * 15; ?>px;">
+            <?php if ($is_current) : ?>
+                <span><?php echo esc_html($series_post->post_title); ?></span>
+            <?php else : ?>
+                <a href="<?php echo esc_url(get_permalink($series_post->ID)); ?>">
+                    <?php echo esc_html($series_post->post_title); ?>
+                </a>
+            <?php endif; ?>
+        </li>
+        <?php
+        
+        // 递归渲染子章节
+        if (!empty($item['children'])) {
+            ylw_render_series_sidebar_list($item['children'], $current_post_id, $level + 1, $depth + 1);
+        }
+    }
+}
+
+/**
+ * 递归渲染归档页文章列表（支持层级）
+ */
+function ylw_render_archive_list($hierarchical, $level = 0, &$counter = null, $depth = 0) {
+    // 防止无限递归
+    if ($depth >= 10) {
+        return;
+    }
+    
+    if ($counter === null) {
+        $counter = 1;
+    }
+    
+    foreach ($hierarchical as $item) {
+        $series_post = $item['post'];
+        $views = function_exists('pvc_get_post_views') ? intval(pvc_get_post_views($series_post->ID)) : 0;
+        $indent_style = $level > 0 ? 'margin-left: ' . ($level * 30) . 'px; border-left: 3px solid #667eea;' : '';
+        
+        ?>
+        <li class="series-archive-item level-<?php echo $level; ?>" style="<?php echo $indent_style; ?>">
+            <div class="series-item-header">
+                <h2 class="series-item-title">
+                    <?php if ($level == 0) : ?>
+                        <span class="series-item-number"><?php echo $counter; ?>.</span>
+                    <?php else : ?>
+                        <span class="series-item-bullet">└</span>
+                    <?php endif; ?>
+                    <a href="<?php echo get_permalink($series_post->ID); ?>"><?php echo esc_html($series_post->post_title); ?></a>
+                </h2>
+            </div>
+            
+            <div class="series-item-meta">
+                <span class="meta-time meta-ico"><?php echo get_the_date('Y-m-d', $series_post->ID); ?></span>
+                <?php if ($views > 0) : ?>
+                    <span class="meta-view meta-ico"><?php echo $views; ?> 次浏览</span>
+                <?php endif; ?>
+                <span class="meta-comment meta-ico">
+                    <?php 
+                    $comments_count = wp_count_comments($series_post->ID);
+                    echo $comments_count->approved . ' 条评论';
+                    ?>
+                </span>
+            </div>
+            
+            <?php if ($series_post->post_excerpt) : ?>
+                <div class="series-item-excerpt">
+                    <?php echo wp_trim_words($series_post->post_excerpt, 30); ?>
+                </div>
+            <?php endif; ?>
+        </li>
+        <?php
+        
+        if ($level == 0) {
+            $counter++;
+        }
+        
+        // 递归渲染子章节
+        if (!empty($item['children'])) {
+            ylw_render_archive_list($item['children'], $level + 1, $counter, $depth + 1);
+        }
+    }
+}
+
+/**
+ * 添加系列管理页面菜单
+ */
+function ylw_add_series_admin_menu() {
+    add_submenu_page(
+        'edit.php',
+        '系列管理',
+        '系列管理',
+        'manage_categories',
+        'ylw-series-manager',
+        'ylw_series_manager_page'
+    );
+}
+add_action('admin_menu', 'ylw_add_series_admin_menu');
+
+/**
+ * 系列管理页面内容
+ */
+function ylw_series_manager_page() {
+    // 加载 jQuery UI sortable
+    wp_enqueue_script('jquery-ui-sortable');
+    
+    // 处理批量添加
+    if (isset($_POST['ylw_bulk_add_series']) && check_admin_referer('ylw_bulk_series_action', 'ylw_bulk_series_nonce')) {
+        $series_id = intval($_POST['series_id']);
+        $post_ids = isset($_POST['post_ids']) ? array_map('intval', $_POST['post_ids']) : array();
+        
+        foreach ($post_ids as $post_id) {
+            wp_set_post_terms($post_id, array($series_id), 'post_series');
+        }
+        
+        echo '<div class="notice notice-success is-dismissible"><p>已成功将 ' . count($post_ids) . ' 篇文章添加到系列。</p></div>';
+    }
+    
+    // 处理排序保存
+    if (isset($_POST['ylw_save_series_order']) && check_admin_referer('ylw_series_order_action', 'ylw_series_order_nonce')) {
+        $order_data = isset($_POST['series_order']) ? $_POST['series_order'] : array();
+        
+        foreach ($order_data as $post_id => $order) {
+            update_post_meta(intval($post_id), 'series_order', intval($order));
+        }
+        
+        echo '<div class="notice notice-success is-dismissible"><p>排序已保存！</p></div>';
+    }
+    
+    // 获取所有系列
+    $all_series = get_terms(array(
+        'taxonomy' => 'post_series',
+        'hide_empty' => false,
+        'orderby' => 'name',
+    ));
+    
+    $selected_series = isset($_GET['series_id']) ? intval($_GET['series_id']) : '';
+    
+    ?>
+    <div class="wrap ylw-series-manager">
+        <h1>📚 系列教程管理</h1>
+        
+        <div class="ylw-series-tabs">
+            <a href="#bulk-add" class="nav-tab nav-tab-active">批量添加</a>
+            <a href="#sort-posts" class="nav-tab">排序管理</a>
+        </div>
+        
+        <!-- 批量添加标签页 -->
+        <div id="bulk-add" class="ylw-tab-content" style="display: block;">
+            <div class="ylw-card">
+                <h2>批量添加文章到系列</h2>
+                <form method="post" action="<?php echo esc_url(admin_url('edit.php?page=ylw-series-manager')); ?>">
+                    <?php wp_nonce_field('ylw_bulk_series_action', 'ylw_bulk_series_nonce'); ?>
+                    
+                    <table class="form-table">
+                        <tr>
+                            <th scope="row"><label for="series_id">选择系列：</label></th>
+                            <td>
+                                <select name="series_id" id="series_id" class="regular-text" required>
+                                    <option value="">-- 请选择系列 --</option>
+                                    <?php 
+                                    ylw_series_options_walker($all_series, 0, ''); 
+                                    ?>
+                                </select>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <h3>选择要添加的文章：</h3>
+                    <div class="ylw-posts-grid">
+                        <?php
+                        $posts = get_posts(array(
+                            'post_type' => 'post',
+                            'posts_per_page' => 100,
+                            'orderby' => 'date',
+                            'order' => 'DESC',
+                        ));
+                        
+                        foreach ($posts as $post) :
+                            $current_series = wp_get_post_terms($post->ID, 'post_series');
+                            $has_series = !empty($current_series);
+                        ?>
+                            <label class="ylw-post-item <?php echo $has_series ? 'has-series' : ''; ?>">
+                                <input type="checkbox" name="post_ids[]" value="<?php echo $post->ID; ?>">
+                                <span class="post-title"><?php echo esc_html($post->post_title); ?></span>
+                                <?php if ($has_series) : ?>
+                                    <span class="current-series">(已在: <?php echo esc_html($current_series[0]->name); ?>)</span>
+                                <?php endif; ?>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
+                    
+                    <p class="submit">
+                        <button type="submit" name="ylw_bulk_add_series" class="button button-primary button-large">
+                            ✓ 批量添加到系列
+                        </button>
+                    </p>
+                </form>
+            </div>
+        </div>
+        
+        <!-- 排序管理标签页 -->
+        <div id="sort-posts" class="ylw-tab-content" style="display: none;">
+            <div class="ylw-card">
+                <h2>拖拽排序文章</h2>
+                
+                <form method="get" action="<?php echo esc_url(admin_url('edit.php')); ?>" style="margin-bottom: 20px;">
+                    <input type="hidden" name="page" value="ylw-series-manager">
+                    <input type="hidden" name="tab" value="sort-posts">
+                    <label for="sort_series_id">选择系列：</label>
+                    <select name="series_id" id="sort_series_id" class="regular-text">
+                        <option value="">-- 请选择系列 --</option>
+                        <?php 
+                        ylw_series_options_walker($all_series, 0, '', $selected_series); 
+                        ?>
+                    </select>
+                    <button type="submit" class="button">加载</button>
+                </form>
+                
+                <?php if ($selected_series) : 
+                    $series_posts = get_posts(array(
+                        'post_type' => 'post',
+                        'posts_per_page' => -1,
+                        'tax_query' => array(
+                            array(
+                                'taxonomy' => 'post_series',
+                                'field' => 'term_id',
+                                'terms' => $selected_series,
+                            ),
+                        ),
+                        'meta_query' => array(
+                            'relation' => 'OR',
+                            array(
+                                'key' => 'series_order',
+                                'compare' => 'EXISTS',
+                            ),
+                            array(
+                                'key' => 'series_order',
+                                'compare' => 'NOT EXISTS',
+                            ),
+                        ),
+                        'orderby' => array(
+                            'meta_value_num' => 'ASC',
+                            'date' => 'ASC',
+                        ),
+                    ));
+                    
+                    if (!empty($series_posts)) :
+                ?>
+                    <form method="post" action="<?php echo esc_url(admin_url('edit.php?page=ylw-series-manager&tab=sort-posts&series_id=' . $selected_series)); ?>" id="series-sort-form">
+                        <?php wp_nonce_field('ylw_series_order_action', 'ylw_series_order_nonce'); ?>
+                        
+                        <p class="description" style="margin-bottom: 15px;">
+                            💡 拖拽下方的文章条目来调整顺序，然后点击保存。
+                        </p>
+                        
+                        <ul id="series-sortable" class="ylw-sortable-list">
+                            <?php 
+                            $index = 1;
+                            foreach ($series_posts as $series_post) : 
+                                $current_order = get_post_meta($series_post->ID, 'series_order', true);
+                            ?>
+                                <li class="ylw-sortable-item" data-post-id="<?php echo $series_post->ID; ?>">
+                                    <span class="dashicons dashicons-menu"></span>
+                                    <span class="item-number"><?php echo $index; ?>.</span>
+                                    <span class="item-title"><?php echo esc_html($series_post->post_title); ?></span>
+                                    <span class="item-meta"><?php echo get_the_date('Y-m-d', $series_post->ID); ?></span>
+                                    <input type="hidden" name="series_order[<?php echo $series_post->ID; ?>]" value="<?php echo $index; ?>" class="order-input">
+                                </li>
+                            <?php 
+                            $index++;
+                            endforeach; 
+                            ?>
+                        </ul>
+                        
+                        <p class="submit">
+                            <button type="submit" name="ylw_save_series_order" class="button button-primary button-large">
+                                💾 保存排序
+                            </button>
+                        </p>
+                    </form>
+                <?php 
+                    else :
+                        echo '<p>该系列暂无文章。</p>';
+                    endif;
+                else :
+                    echo '<p class="description">请先选择一个系列。</p>';
+                endif; 
+                ?>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        .ylw-series-manager { max-width: 1200px; }
+        .ylw-card {
+            background: #fff;
+            border: 1px solid #ccd0d4;
+            box-shadow: 0 1px 1px rgba(0,0,0,.04);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .ylw-series-tabs {
+            border-bottom: 1px solid #ccd0d4;
+            margin: 20px 0 0;
+            padding: 0;
+        }
+        .ylw-series-tabs .nav-tab {
+            margin-bottom: -1px;
+        }
+        .ylw-posts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 10px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 15px;
+            border: 1px solid #ddd;
+            background: #fafafa;
+            border-radius: 4px;
+        }
+        .ylw-post-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .ylw-post-item:hover {
+            border-color: #2271b1;
+            box-shadow: 0 0 0 1px #2271b1;
+        }
+        .ylw-post-item.has-series {
+            background: #f0f6fc;
+            border-color: #c3dcf5;
+        }
+        .ylw-post-item input[type="checkbox"] {
+            margin: 0;
+        }
+        .ylw-post-item .post-title {
+            flex: 1;
+            font-weight: 500;
+        }
+        .ylw-post-item .current-series {
+            font-size: 11px;
+            color: #2271b1;
+        }
+        .ylw-sortable-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .ylw-sortable-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            margin-bottom: 8px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: move;
+            transition: all 0.2s;
+        }
+        .ylw-sortable-item:hover {
+            background: #f0f6fc;
+            border-color: #2271b1;
+        }
+        .ylw-sortable-item .dashicons {
+            color: #999;
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+        }
+        .ylw-sortable-item .item-number {
+            font-weight: 700;
+            color: #2271b1;
+            min-width: 30px;
+            font-size: 16px;
+        }
+        .ylw-sortable-item .item-title {
+            flex: 1;
+            font-weight: 500;
+        }
+        .ylw-sortable-item .item-meta {
+            color: #666;
+            font-size: 12px;
+        }
+        .ylw-sortable-item.ui-sortable-helper {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transform: scale(1.02);
+        }
+        .ylw-sortable-item.ui-sortable-placeholder {
+            background: #e5f5ff;
+            border: 2px dashed #2271b1;
+            visibility: visible !important;
+        }
+    </style>
+    
+    <script>
+    jQuery(document).ready(function($) {
+        // 根据 URL 参数自动切换标签页
+        var urlParams = new URLSearchParams(window.location.search);
+        var activeTab = urlParams.get('tab');
+        
+        if (activeTab) {
+            $('.nav-tab').removeClass('nav-tab-active');
+            $('.ylw-tab-content').hide();
+            
+            $('a[href="#' + activeTab + '"]').addClass('nav-tab-active');
+            $('#' + activeTab).show();
+        }
+        
+        // 标签页切换
+        $('.ylw-series-tabs .nav-tab').on('click', function(e) {
+            e.preventDefault();
+            var target = $(this).attr('href');
+            
+            $('.nav-tab').removeClass('nav-tab-active');
+            $(this).addClass('nav-tab-active');
+            
+            $('.ylw-tab-content').hide();
+            $(target).show();
+        });
+        
+        // 拖拽排序
+        if ($('#series-sortable').length) {
+            $('#series-sortable').sortable({
+                placeholder: 'ui-sortable-placeholder',
+                helper: 'clone',
+                update: function(event, ui) {
+                    // 更新序号和隐藏字段
+                    $('#series-sortable .ylw-sortable-item').each(function(index) {
+                        var newOrder = index + 1;
+                        $(this).find('.item-number').text(newOrder + '.');
+                        $(this).find('.order-input').val(newOrder);
+                    });
+                }
+            });
+        }
+    });
+    </script>
+    <?php
+}
+
+/**
+ * 递归输出系列下拉选项（支持层级）
+ */
+function ylw_series_options_walker($terms, $parent_id = 0, $prefix = '', $selected = '') {
+    if (empty($terms)) {
+        return;
+    }
+    
+    foreach ($terms as $term) {
+        // 检查是否有 parent 属性（系列层级支持）
+        $term_parent = isset($term->parent) ? $term->parent : 0;
+        
+        if ($term_parent == $parent_id) {
+            $selected_attr = ($selected == $term->term_id) ? 'selected' : '';
+            echo '<option value="' . esc_attr($term->term_id) . '" ' . $selected_attr . '>';
+            echo esc_html($prefix . $term->name) . ' (' . $term->count . ' 篇)';
+            echo '</option>';
+            
+            // 递归输出子系列
+            ylw_series_options_walker($terms, $term->term_id, $prefix . '— ', $selected);
+        }
+    }
+}
+
 //添加侧边栏
 if ( function_exists('register_sidebar') )
     register_sidebar(array(
