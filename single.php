@@ -16,12 +16,23 @@ $is_series = !empty($series_data['posts']);
 <div id="mbxdh" class="<?php echo $is_series ? 'series-breadcrumb' : ''; ?>">
 		<div>
 			
-			<?php
-			$categorys = get_the_category();
-			$category = $categorys[0];
-			echo( get_category_parents($category->term_id,true,' &raquo; ') );
-			the_title();
-			?>
+			<?php if ($is_series) : ?>
+				<?php
+				$series_term = isset($series_data['series']) ? $series_data['series'] : null;
+				if ($series_term) {
+					$series_url = get_term_link($series_term);
+					echo '<a href="' . esc_url($series_url) . '">' . esc_html($series_term->name) . '</a> &raquo; ';
+				}
+				the_title();
+				?>
+			<?php else : ?>
+				<?php
+				$categorys = get_the_category();
+				$category = $categorys[0];
+				echo( get_category_parents($category->term_id,true,' &raquo; ') );
+				the_title();
+				?>
+			<?php endif; ?>
 		</div>
 </div>
 <main id="main" role="main">
