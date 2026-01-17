@@ -160,6 +160,14 @@ function ylw_series_category_meta_fields_add($taxonomy) {
     $categories = get_categories(array('hide_empty' => false));
     ?>
     <div class="form-field term-group">
+        <label for="ylw_series_cover_image">合集封面图（可选）</label>
+        <div style="display:flex; gap:8px; align-items:center;">
+            <input type="text" name="ylw_series_cover_image" id="ylw_series_cover_image" value="" placeholder="https://..." style="flex:1;">
+            <button type="button" class="button ylw-media-select" data-target="ylw_series_cover_image">从媒体库选择图片</button>
+        </div>
+        <p class="description">填写图片 URL，用于分类合集展示。</p>
+    </div>
+    <div class="form-field term-group">
         <label for="ylw_series_categories">所属分类（可多选）</label>
         <div style="max-height: 220px; overflow-y: auto; border: 1px solid #ddd; padding: 8px; background: #fff;">
             <?php foreach ($categories as $cat) : ?>
@@ -180,7 +188,18 @@ function ylw_series_category_meta_fields_edit($term) {
     $categories = get_categories(array('hide_empty' => false));
     $selected = get_term_meta($term->term_id, 'ylw_series_categories', true);
     $selected = is_array($selected) ? $selected : array();
+    $cover_image = get_term_meta($term->term_id, 'ylw_series_cover_image', true);
     ?>
+    <tr class="form-field term-group-wrap">
+        <th scope="row"><label for="ylw_series_cover_image">合集封面图（可选）</label></th>
+        <td>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <input type="text" name="ylw_series_cover_image" id="ylw_series_cover_image" value="<?php echo esc_attr($cover_image); ?>" placeholder="https://..." style="flex:1;">
+                <button type="button" class="button ylw-media-select" data-target="ylw_series_cover_image">从媒体库选择图片</button>
+            </div>
+            <p class="description">填写图片 URL，用于分类合集展示。</p>
+        </td>
+    </tr>
     <tr class="form-field term-group-wrap">
         <th scope="row"><label for="ylw_series_categories">所属分类（可多选）</label></th>
         <td>
@@ -206,11 +225,46 @@ function ylw_save_series_category_meta($term_id) {
     if (!current_user_can('manage_categories')) {
         return;
     }
+    if (isset($_POST['ylw_series_cover_image'])) {
+        update_term_meta($term_id, 'ylw_series_cover_image', esc_url_raw($_POST['ylw_series_cover_image']));
+    }
     $cat_ids = isset($_POST['ylw_series_categories']) ? array_map('intval', (array) $_POST['ylw_series_categories']) : array();
     update_term_meta($term_id, 'ylw_series_categories', $cat_ids);
 }
 add_action('created_post_series', 'ylw_save_series_category_meta');
 add_action('edited_post_series', 'ylw_save_series_category_meta');
+
+/**
+ * 系列封面图 - 媒体库选择
+ */
+function ylw_series_admin_media_enqueue($hook) {
+    if (empty($_GET['taxonomy']) || $_GET['taxonomy'] !== 'post_series') {
+        return;
+    }
+    wp_enqueue_media();
+    wp_add_inline_script('jquery-core', "
+        jQuery(function($){
+            $(document).on('click', '.ylw-media-select', function(e){
+                e.preventDefault();
+                var targetId = $(this).data('target');
+                var input = $('#' + targetId);
+                var frame = wp.media({
+                    title: '选择封面图',
+                    button: { text: '使用此图片' },
+                    multiple: false
+                });
+                frame.on('select', function(){
+                    var attachment = frame.state().get('selection').first().toJSON();
+                    if (attachment && attachment.url) {
+                        input.val(attachment.url).trigger('change');
+                    }
+                });
+                frame.open();
+            });
+        });
+    ");
+}
+add_action('admin_enqueue_scripts', 'ylw_series_admin_media_enqueue');
 
 /**
  * 获取指定分类下的系列合集
@@ -258,8 +312,23 @@ function ylw_render_series_by_category($category_id = 0) {
         <div class="series-by-category-header">📚 该分类合集</div>
         <ul class="series-by-category-list">
             <?php foreach ($series_terms as $term) : ?>
+                <?php $cover_image = get_term_meta($term->term_id, 'ylw_series_cover_image', true); ?>
                 <li>
-                    <a href="<?php echo esc_url(get_term_link($term)); ?>"><?php echo esc_html($term->name); ?></a>
+                    <a href="<?php echo esc_url(get_term_link($term)); ?>" class="series-by-category-card">
+                        <span class="series-card-media">
+                            <?php if (!empty($cover_image)) : ?>
+                                <img src="<?php echo esc_url($cover_image); ?>" alt="<?php echo esc_attr($term->name); ?>">
+                            <?php else : ?>
+                                <span class="series-card-placeholder">📘</span>
+                            <?php endif; ?>
+                        </span>
+                        <span class="series-card-content">
+                            <span class="series-card-title"><?php echo esc_html($term->name); ?></span>
+                            <?php if (!empty($term->description)) : ?>
+                                <span class="series-card-desc"><?php echo esc_html(wp_trim_words($term->description, 18)); ?></span>
+                            <?php endif; ?>
+                        </span>
+                    </a>
                 </li>
             <?php endforeach; ?>
         </ul>
