@@ -153,6 +153,121 @@ function ylw_register_series_taxonomy() {
 add_action('init', 'ylw_register_series_taxonomy');
 
 /**
+ * 系列教程 - 绑定分类（Term Meta）
+ */
+function ylw_series_category_meta_fields_add($taxonomy) {
+    wp_nonce_field('ylw_series_category_meta', 'ylw_series_category_meta_nonce');
+    $categories = get_categories(array('hide_empty' => false));
+    ?>
+    <div class="form-field term-group">
+        <label for="ylw_series_categories">所属分类（可多选）</label>
+        <div style="max-height: 220px; overflow-y: auto; border: 1px solid #ddd; padding: 8px; background: #fff;">
+            <?php foreach ($categories as $cat) : ?>
+                <label style="display:block; margin: 4px 0;">
+                    <input type="checkbox" name="ylw_series_categories[]" value="<?php echo esc_attr($cat->term_id); ?>">
+                    <?php echo esc_html($cat->name); ?>
+                </label>
+            <?php endforeach; ?>
+        </div>
+        <p class="description">不选择则该系列不会在分类页合集列表中显示。</p>
+    </div>
+    <?php
+}
+add_action('post_series_add_form_fields', 'ylw_series_category_meta_fields_add');
+
+function ylw_series_category_meta_fields_edit($term) {
+    wp_nonce_field('ylw_series_category_meta', 'ylw_series_category_meta_nonce');
+    $categories = get_categories(array('hide_empty' => false));
+    $selected = get_term_meta($term->term_id, 'ylw_series_categories', true);
+    $selected = is_array($selected) ? $selected : array();
+    ?>
+    <tr class="form-field term-group-wrap">
+        <th scope="row"><label for="ylw_series_categories">所属分类（可多选）</label></th>
+        <td>
+            <div style="max-height: 220px; overflow-y: auto; border: 1px solid #ddd; padding: 8px; background: #fff;">
+                <?php foreach ($categories as $cat) : ?>
+                    <label style="display:block; margin: 4px 0;">
+                        <input type="checkbox" name="ylw_series_categories[]" value="<?php echo esc_attr($cat->term_id); ?>" <?php checked(in_array($cat->term_id, $selected, true)); ?>>
+                        <?php echo esc_html($cat->name); ?>
+                    </label>
+                <?php endforeach; ?>
+            </div>
+            <p class="description">不选择则该系列不会在分类页合集列表中显示。</p>
+        </td>
+    </tr>
+    <?php
+}
+add_action('post_series_edit_form_fields', 'ylw_series_category_meta_fields_edit');
+
+function ylw_save_series_category_meta($term_id) {
+    if (!isset($_POST['ylw_series_category_meta_nonce']) || !wp_verify_nonce($_POST['ylw_series_category_meta_nonce'], 'ylw_series_category_meta')) {
+        return;
+    }
+    if (!current_user_can('manage_categories')) {
+        return;
+    }
+    $cat_ids = isset($_POST['ylw_series_categories']) ? array_map('intval', (array) $_POST['ylw_series_categories']) : array();
+    update_term_meta($term_id, 'ylw_series_categories', $cat_ids);
+}
+add_action('created_post_series', 'ylw_save_series_category_meta');
+add_action('edited_post_series', 'ylw_save_series_category_meta');
+
+/**
+ * 获取指定分类下的系列合集
+ */
+function ylw_get_series_terms_by_category($category_id = 0, $extra_args = array()) {
+    $args = array(
+        'taxonomy' => 'post_series',
+        'hide_empty' => false,
+    );
+
+    if ($category_id) {
+        $args['meta_query'] = array(
+            array(
+                'key' => 'ylw_series_categories',
+                'value' => 'i:' . intval($category_id) . ';',
+                'compare' => 'LIKE',
+            ),
+        );
+    }
+
+    if (!empty($extra_args) && is_array($extra_args)) {
+        $args = array_merge($args, $extra_args);
+    }
+
+    return get_terms($args);
+}
+
+/**
+ * 渲染分类页的系列合集列表
+ */
+function ylw_render_series_by_category($category_id = 0) {
+    if (!$category_id) {
+        $category_id = is_category() ? get_queried_object_id() : 0;
+    }
+    if (!$category_id) {
+        return;
+    }
+
+    $series_terms = ylw_get_series_terms_by_category($category_id);
+    if (empty($series_terms) || is_wp_error($series_terms)) {
+        return;
+    }
+    ?>
+    <section class="series-by-category">
+        <div class="series-by-category-header">📚 该分类合集</div>
+        <ul class="series-by-category-list">
+            <?php foreach ($series_terms as $term) : ?>
+                <li>
+                    <a href="<?php echo esc_url(get_term_link($term)); ?>"><?php echo esc_html($term->name); ?></a>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </section>
+    <?php
+}
+
+/**
  * 添加系列教程管理菜单
  */
 function ylw_add_series_admin_menu() {

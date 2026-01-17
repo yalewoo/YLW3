@@ -46,14 +46,19 @@
 <main id="main" role="main">
 <div id="container">
 
-	
+	<div class="archive-main">
+		<?php if (is_category()) : ?>
+		<section id="series-collection">
+			<?php ylw_render_series_by_category(); ?>
+		</section>
+		<?php endif; ?>
 
-
-	<section id="blog">
-
-		<?php include("post-article.php"); ?>
-		
-	</section>
+		<section id="blog">
+			<h2 class="section-title">最新文章</h2>
+			<?php include("post-article.php"); ?>
+			
+		</section>
+	</div>
 
 	<?php get_sidebar(); ?>
 </div>
