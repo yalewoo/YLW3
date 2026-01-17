@@ -8,7 +8,7 @@ $series_data = ylw_get_series_posts($current_post_id);
 $is_series = !empty($series_data['posts']);
 ?>
 
-<div id="mbxdh">
+<div id="mbxdh" class="<?php echo $is_series ? 'series-breadcrumb' : ''; ?>">
 		<div>
 			
 			<?php

@@ -404,11 +404,11 @@ img {
 
 .single #container.series-layout {
 	display: grid;
-	grid-template-columns: 260px minmax(0, 1fr) 240px;
+	grid-template-columns: 260px minmax(0, 900px) 240px;
 	gap: 0;
-	max-width: 100%;
+	max-width: 1400px;
 	width: 100%;
-	margin: 0;
+	margin: 0 auto;
 	padding: 0;
 }
 
@@ -992,13 +992,24 @@ img {
 	flex-wrap: wrap;
 }
 
-/* 系列布局的面包屑样式 */
-.series-layout ~ #main #mbxdh {
-	max-width: 1440px;
-	background: #fff;
+/* 面包屑导航默认样式 */
+#mbxdh {
+	max-width: var(--max-width);
+	margin: 0 auto;
+	padding: var(--spacing-sm) var(--spacing-md);
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-xs);
+	font-size: 0.85rem;
+	color: var(--text-muted);
+}
+
+/* 系列文章的面包屑 - 和正文左对齐 */
+#mbxdh.series-breadcrumb {
+	max-width: 1400px;
 	border-bottom: 1px solid var(--border-color);
-	margin: 0;
-	padding: var(--spacing-md) 40px;
+	padding-left: calc(260px + 40px);
+	padding-right: var(--spacing-md);
 }
 
 /* ========================================
@@ -2251,6 +2262,7 @@ textarea:focus {
 	grid-column: 2;
 	grid-row: 1;
 	max-width: 100%;
+	width: 100%;
 	padding: var(--spacing-xl) 40px;
 	background: #fff;
 	margin: 0;

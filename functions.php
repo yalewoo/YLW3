@@ -153,6 +153,377 @@ function ylw_register_series_taxonomy() {
 add_action('init', 'ylw_register_series_taxonomy');
 
 /**
+ * 添加系列教程管理菜单
+ */
+function ylw_add_series_admin_menu() {
+    // 系列管理页面（包含批量添加和高级排序）
+    add_submenu_page(
+        'edit.php',
+        '系列教程管理',
+        '📚 系列管理',
+        'manage_categories',
+        'ylw-series-manager',
+        'ylw_series_manager_page'
+    );
+}
+add_action('admin_menu', 'ylw_add_series_admin_menu');
+
+/**
+ * 系列文章排序管理页面
+ */
+function ylw_series_order_page() {
+    // 获取所有系列
+    $series_list = get_terms(array(
+        'taxonomy' => 'post_series',
+        'hide_empty' => false,
+    ));
+    
+    // 获取选中的系列
+    $selected_series = isset($_GET['series_id']) ? intval($_GET['series_id']) : '';
+    
+    ?>
+    <div class="wrap">
+        <h1>📚 系列文章排序管理</h1>
+        <p>通过拖拽调整文章顺序和层级关系（支持三级结构）</p>
+        
+        <form method="get" style="margin: 20px 0;">
+            <input type="hidden" name="taxonomy" value="post_series">
+            <input type="hidden" name="page" value="ylw-series-order">
+            
+            <label for="series_id"><strong>选择系列：</strong></label>
+            <select name="series_id" id="series_id" onchange="this.form.submit()">
+                <option value="">-- 请选择系列 --</option>
+                <?php foreach ($series_list as $series) : ?>
+                    <option value="<?php echo $series->term_id; ?>" <?php selected($selected_series, $series->term_id); ?>>
+                        <?php echo esc_html($series->name); ?> (<?php echo $series->count; ?> 篇)
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </form>
+        
+        <?php if ($selected_series) : 
+            $posts = get_posts(array(
+                'post_type' => 'post',
+                'posts_per_page' => -1,
+                'tax_query' => array(
+                    array(
+                        'taxonomy' => 'post_series',
+                        'field' => 'term_id',
+                        'terms' => $selected_series,
+                    ),
+                ),
+                'orderby' => 'meta_value_num date',
+                'meta_key' => 'series_order',
+                'order' => 'ASC',
+            ));
+            
+            if (!empty($posts)) :
+                $hierarchical = ylw_build_hierarchical_posts($posts);
+        ?>
+            <div id="series-order-container">
+                <div class="series-order-notice">
+                    <p><strong>操作说明：</strong></p>
+                    <ul>
+                        <li>🖱️ 拖拽文章可调整顺序</li>
+                        <li>➡️ 向右拖动可设为子章节</li>
+                        <li>⬅️ 向左拖动可提升层级</li>
+                        <li>💾 调整后点击"保存排序"按钮</li>
+                    </ul>
+                </div>
+                
+                <ol class="series-sortable" id="series-sortable-list" data-level="0">
+                    <?php ylw_render_sortable_list($hierarchical, 0); ?>
+                </ol>
+                
+                <button type="button" class="button button-primary button-large" id="save-series-order" style="margin-top: 20px;">
+                    💾 保存排序
+                </button>
+                <span id="save-message" style="margin-left: 15px; color: #46b450;"></span>
+            </div>
+            
+            <style>
+            .series-order-notice {
+                background: #fff;
+                border-left: 4px solid #2271b1;
+                padding: 15px;
+                margin: 20px 0;
+            }
+            .series-order-notice ul {
+                margin: 10px 0 0 20px;
+            }
+            .series-sortable {
+                list-style: none;
+                padding: 0;
+                margin: 20px 0;
+            }
+            .series-sortable li {
+                background: #fff;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                padding: 12px 15px;
+                margin: 8px 0;
+                cursor: move;
+                position: relative;
+                transition: all 0.2s;
+            }
+            .series-sortable li:hover {
+                border-color: #2271b1;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .series-sortable li.ui-sortable-helper {
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                transform: rotate(2deg);
+            }
+            .series-sortable li.ui-sortable-placeholder {
+                background: #f0f6fc;
+                border: 2px dashed #2271b1;
+                visibility: visible !important;
+            }
+            .series-sortable .level-0 {
+                background: #fff;
+            }
+            .series-sortable .level-1 {
+                margin-left: 40px;
+                background: #f9f9f9;
+            }
+            .series-sortable .level-2 {
+                margin-left: 80px;
+                background: #f5f5f5;
+            }
+            .series-item-title {
+                font-weight: 600;
+                color: #2271b1;
+            }
+            .series-item-meta {
+                font-size: 12px;
+                color: #666;
+                margin-top: 5px;
+            }
+            .series-item-actions {
+                position: absolute;
+                right: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+            .series-item-actions button {
+                margin-left: 5px;
+                padding: 2px 8px;
+                font-size: 11px;
+            }
+            .level-indicator {
+                display: inline-block;
+                padding: 2px 8px;
+                background: #e0e0e0;
+                border-radius: 3px;
+                font-size: 11px;
+                margin-right: 8px;
+            }
+            .level-0 .level-indicator {
+                background: #2271b1;
+                color: #fff;
+            }
+            .level-1 .level-indicator {
+                background: #72aee6;
+                color: #fff;
+            }
+            .level-2 .level-indicator {
+                background: #c3e6ff;
+                color: #333;
+            }
+            </style>
+            
+            <script>
+            jQuery(document).ready(function($) {
+                // 初始化拖拽排序
+                function initSortable() {
+                    $('.series-sortable').sortable({
+                        connectWith: '.series-sortable',
+                        placeholder: 'ui-sortable-placeholder',
+                        tolerance: 'pointer',
+                        cursor: 'move',
+                        opacity: 0.8,
+                        handle: '.series-item-title',
+                        start: function(e, ui) {
+                            ui.placeholder.height(ui.item.height());
+                        },
+                        update: function(e, ui) {
+                            updateLevelClasses();
+                        }
+                    });
+                }
+                
+                initSortable();
+                
+                // 更新层级样式
+                function updateLevelClasses() {
+                    $('.series-sortable').each(function() {
+                        var level = $(this).data('level');
+                        $(this).children('li').each(function() {
+                            $(this).removeClass('level-0 level-1 level-2').addClass('level-' + level);
+                            $(this).find('.level-indicator').text('级别 ' + level);
+                        });
+                    });
+                }
+                
+                // 升级/降级按钮
+                $(document).on('click', '.make-child', function() {
+                    var $item = $(this).closest('li');
+                    var $prev = $item.prev('li');
+                    
+                    if ($prev.length) {
+                        var $children = $prev.find('> ol');
+                        if (!$children.length) {
+                            $children = $('<ol class="series-sortable" data-level="' + (parseInt($prev.closest('ol').data('level')) + 1) + '"></ol>');
+                            $prev.append($children);
+                            initSortable();
+                        }
+                        $children.append($item);
+                        updateLevelClasses();
+                    }
+                });
+                
+                $(document).on('click', '.make-parent', function() {
+                    var $item = $(this).closest('li');
+                    var $parentOl = $item.closest('ol');
+                    var $parentLi = $parentOl.closest('li');
+                    
+                    if ($parentLi.length) {
+                        $parentLi.after($item);
+                        if ($parentOl.children('li').length === 0) {
+                            $parentOl.remove();
+                        }
+                        updateLevelClasses();
+                    }
+                });
+                
+                // 保存排序
+                $('#save-series-order').click(function() {
+                    var button = $(this);
+                    button.prop('disabled', true).text('保存中...');
+                    
+                    var data = collectHierarchy($('#series-sortable-list'));
+                    
+                    $.post(ajaxurl, {
+                        action: 'ylw_save_series_order',
+                        series_id: <?php echo $selected_series; ?>,
+                        data: JSON.stringify(data)
+                    }, function(response) {
+                        if (response.success) {
+                            $('#save-message').text('✅ 保存成功！').fadeIn().delay(2000).fadeOut();
+                        } else {
+                            $('#save-message').text('❌ 保存失败：' + response.data).fadeIn();
+                        }
+                        button.prop('disabled', false).text('💾 保存排序');
+                    });
+                });
+                
+                // 收集层级数据
+                function collectHierarchy($list, parentId = 0) {
+                    var items = [];
+                    var order = 1;
+                    
+                    $list.children('li').each(function() {
+                        var $li = $(this);
+                        var postId = $li.data('post-id');
+                        var $children = $li.find('> ol');
+                        
+                        items.push({
+                            post_id: postId,
+                            parent_id: parentId,
+                            order: order
+                        });
+                        
+                        if ($children.length) {
+                            items = items.concat(collectHierarchy($children, postId));
+                        }
+                        
+                        order++;
+                    });
+                    
+                    return items;
+                }
+            });
+            </script>
+        <?php 
+            else :
+                echo '<p>该系列暂无文章。</p>';
+            endif;
+        endif;
+        ?>
+    </div>
+    <?php
+}
+
+/**
+ * 渲染可排序列表
+ */
+function ylw_render_sortable_list($hierarchical, $level = 0) {
+    foreach ($hierarchical as $item) {
+        $post = $item['post'];
+        $order = get_post_meta($post->ID, 'series_order', true);
+        ?>
+        <li data-post-id="<?php echo $post->ID; ?>" class="level-<?php echo $level; ?>">
+            <span class="level-indicator">级别 <?php echo $level; ?></span>
+            <span class="series-item-title"><?php echo esc_html($post->post_title); ?></span>
+            <span class="series-item-meta">
+                排序: <?php echo $order ? $order : '-'; ?> | 
+                ID: <?php echo $post->ID; ?>
+            </span>
+            <span class="series-item-actions">
+                <?php if ($level < 2) : ?>
+                    <button type="button" class="button button-small make-child">→ 设为子级</button>
+                <?php endif; ?>
+                <?php if ($level > 0) : ?>
+                    <button type="button" class="button button-small make-parent">← 提升层级</button>
+                <?php endif; ?>
+            </span>
+            
+            <?php if (!empty($item['children'])) : ?>
+                <ol class="series-sortable" data-level="<?php echo $level + 1; ?>">
+                    <?php ylw_render_sortable_list($item['children'], $level + 1); ?>
+                </ol>
+            <?php endif; ?>
+        </li>
+        <?php
+    }
+}
+
+/**
+ * AJAX 保存系列排序
+ */
+function ylw_ajax_save_series_order() {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('权限不足');
+    }
+    
+    $series_id = intval($_POST['series_id']);
+    $data = json_decode(stripslashes($_POST['data']), true);
+    
+    if (!$series_id || !is_array($data)) {
+        wp_send_json_error('数据无效');
+    }
+    
+    foreach ($data as $item) {
+        $post_id = intval($item['post_id']);
+        $parent_id = intval($item['parent_id']);
+        $order = intval($item['order']);
+        
+        // 更新排序
+        update_post_meta($post_id, 'series_order', $order);
+        
+        // 更新父文章
+        if ($parent_id) {
+            update_post_meta($post_id, 'series_parent_post', $parent_id);
+        } else {
+            delete_post_meta($post_id, 'series_parent_post');
+        }
+    }
+    
+    wp_send_json_success();
+}
+add_action('wp_ajax_ylw_save_series_order', 'ylw_ajax_save_series_order');
+
+/**
  * 添加系列教程 Meta Box
  */
 function ylw_add_series_meta_box() {
@@ -684,21 +1055,6 @@ function ylw_render_archive_list($hierarchical, $level = 0, &$counter = null, $d
 }
 
 /**
- * 添加系列管理页面菜单
- */
-function ylw_add_series_admin_menu() {
-    add_submenu_page(
-        'edit.php',
-        '系列管理',
-        '系列管理',
-        'manage_categories',
-        'ylw-series-manager',
-        'ylw_series_manager_page'
-    );
-}
-add_action('admin_menu', 'ylw_add_series_admin_menu');
-
-/**
  * 系列管理页面内容
  */
 function ylw_series_manager_page() {
@@ -800,26 +1156,30 @@ function ylw_series_manager_page() {
             </div>
         </div>
         
-        <!-- 排序管理标签页 -->
+        <!-- 高级排序管理标签页 -->
         <div id="sort-posts" class="ylw-tab-content" style="display: none;">
             <div class="ylw-card">
-                <h2>拖拽排序文章</h2>
+                <h2>🎯 高级拖拽排序（支持层级调整）</h2>
+                <p style="color: #666; margin-bottom: 20px;">拖拽调整文章顺序和层级关系，支持三级嵌套结构</p>
                 
                 <form method="get" action="<?php echo esc_url(admin_url('edit.php')); ?>" style="margin-bottom: 20px;">
                     <input type="hidden" name="page" value="ylw-series-manager">
                     <input type="hidden" name="tab" value="sort-posts">
-                    <label for="sort_series_id">选择系列：</label>
-                    <select name="series_id" id="sort_series_id" class="regular-text">
+                    <label for="sort_series_id"><strong>选择系列：</strong></label>
+                    <select name="series_id" id="sort_series_id" class="regular-text" onchange="this.form.submit()">
                         <option value="">-- 请选择系列 --</option>
                         <?php 
-                        ylw_series_options_walker($all_series, 0, '', $selected_series); 
+                        foreach ($all_series as $series) : ?>
+                            <option value="<?php echo $series->term_id; ?>" <?php selected($selected_series, $series->term_id); ?>>
+                                <?php echo esc_html($series->name); ?> (<?php echo $series->count; ?> 篇)
+                            </option>
+                        <?php endforeach; 
                         ?>
                     </select>
-                    <button type="submit" class="button">加载</button>
                 </form>
                 
                 <?php if ($selected_series) : 
-                    $series_posts = get_posts(array(
+                    $posts = get_posts(array(
                         'post_type' => 'post',
                         'posts_per_page' => -1,
                         'tax_query' => array(
@@ -829,57 +1189,230 @@ function ylw_series_manager_page() {
                                 'terms' => $selected_series,
                             ),
                         ),
-                        'meta_query' => array(
-                            'relation' => 'OR',
-                            array(
-                                'key' => 'series_order',
-                                'compare' => 'EXISTS',
-                            ),
-                            array(
-                                'key' => 'series_order',
-                                'compare' => 'NOT EXISTS',
-                            ),
-                        ),
-                        'orderby' => array(
-                            'meta_value_num' => 'ASC',
-                            'date' => 'ASC',
-                        ),
+                        'orderby' => 'meta_value_num date',
+                        'meta_key' => 'series_order',
+                        'order' => 'ASC',
                     ));
                     
-                    if (!empty($series_posts)) :
+                    if (!empty($posts)) :
+                        $hierarchical = ylw_build_hierarchical_posts($posts);
                 ?>
-                    <form method="post" action="<?php echo esc_url(admin_url('edit.php?page=ylw-series-manager&tab=sort-posts&series_id=' . $selected_series)); ?>" id="series-sort-form">
-                        <?php wp_nonce_field('ylw_series_order_action', 'ylw_series_order_nonce'); ?>
-                        
-                        <p class="description" style="margin-bottom: 15px;">
-                            💡 拖拽下方的文章条目来调整顺序，然后点击保存。
-                        </p>
-                        
-                        <ul id="series-sortable" class="ylw-sortable-list">
-                            <?php 
-                            $index = 1;
-                            foreach ($series_posts as $series_post) : 
-                                $current_order = get_post_meta($series_post->ID, 'series_order', true);
-                            ?>
-                                <li class="ylw-sortable-item" data-post-id="<?php echo $series_post->ID; ?>">
-                                    <span class="dashicons dashicons-menu"></span>
-                                    <span class="item-number"><?php echo $index; ?>.</span>
-                                    <span class="item-title"><?php echo esc_html($series_post->post_title); ?></span>
-                                    <span class="item-meta"><?php echo get_the_date('Y-m-d', $series_post->ID); ?></span>
-                                    <input type="hidden" name="series_order[<?php echo $series_post->ID; ?>]" value="<?php echo $index; ?>" class="order-input">
-                                </li>
-                            <?php 
-                            $index++;
-                            endforeach; 
-                            ?>
+                    <div class="series-order-notice" style="background: #fff; border-left: 4px solid #2271b1; padding: 15px; margin: 20px 0;">
+                        <p><strong>操作说明：</strong></p>
+                        <ul style="margin: 10px 0 0 20px;">
+                            <li>🖱️ 拖拽文章标题可调整顺序</li>
+                            <li>➡️ 点击"设为子级"可设为上一篇的子章节</li>
+                            <li>⬅️ 点击"提升层级"可提升到上一级</li>
+                            <li>💾 调整后点击"保存排序"按钮</li>
                         </ul>
+                    </div>
+                    
+                    <ol class="series-sortable-advanced" id="series-sortable-list" data-level="0" style="list-style: none; padding: 0; margin: 20px 0;">
+                        <?php ylw_render_sortable_list($hierarchical, 0); ?>
+                    </ol>
+                    
+                    <button type="button" class="button button-primary button-large" id="save-series-order-advanced" style="margin-top: 20px;">
+                        💾 保存排序
+                    </button>
+                    <span id="save-message-advanced" style="margin-left: 15px; color: #46b450;"></span>
+                    
+                    <style>
+                    .series-sortable-advanced {
+                        list-style: none;
+                        padding: 0;
+                        margin: 20px 0;
+                    }
+                    .series-sortable-advanced li {
+                        background: #fff;
+                        border: 1px solid #ddd;
+                        border-radius: 4px;
+                        padding: 12px 15px;
+                        margin: 8px 0;
+                        cursor: move;
+                        position: relative;
+                        transition: all 0.2s;
+                    }
+                    .series-sortable-advanced li:hover {
+                        border-color: #2271b1;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    }
+                    .series-sortable-advanced li.ui-sortable-helper {
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                        transform: rotate(2deg);
+                    }
+                    .series-sortable-advanced li.ui-sortable-placeholder {
+                        background: #f0f6fc;
+                        border: 2px dashed #2271b1;
+                        visibility: visible !important;
+                    }
+                    .series-sortable-advanced .level-0 {
+                        background: #fff;
+                    }
+                    .series-sortable-advanced .level-1 {
+                        margin-left: 40px;
+                        background: #f9f9f9;
+                    }
+                    .series-sortable-advanced .level-2 {
+                        margin-left: 80px;
+                        background: #f5f5f5;
+                    }
+                    .series-item-title {
+                        font-weight: 600;
+                        color: #2271b1;
+                        cursor: move;
+                    }
+                    .series-item-meta {
+                        font-size: 12px;
+                        color: #666;
+                        margin-top: 5px;
+                        display: block;
+                    }
+                    .series-item-actions {
+                        position: absolute;
+                        right: 15px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                    }
+                    .series-item-actions button {
+                        margin-left: 5px;
+                        padding: 2px 8px;
+                        font-size: 11px;
+                    }
+                    .level-indicator {
+                        display: inline-block;
+                        padding: 2px 8px;
+                        background: #e0e0e0;
+                        border-radius: 3px;
+                        font-size: 11px;
+                        margin-right: 8px;
+                    }
+                    .level-0 .level-indicator {
+                        background: #2271b1;
+                        color: #fff;
+                    }
+                    .level-1 .level-indicator {
+                        background: #72aee6;
+                        color: #fff;
+                    }
+                    .level-2 .level-indicator {
+                        background: #c3e6ff;
+                        color: #333;
+                    }
+                    </style>
+                    
+                    <script>
+                    jQuery(document).ready(function($) {
+                        // 初始化拖拽排序
+                        function initSortable() {
+                            $('.series-sortable-advanced').sortable({
+                                connectWith: '.series-sortable-advanced',
+                                placeholder: 'ui-sortable-placeholder',
+                                tolerance: 'pointer',
+                                cursor: 'move',
+                                opacity: 0.8,
+                                handle: '.series-item-title',
+                                start: function(e, ui) {
+                                    ui.placeholder.height(ui.item.height());
+                                },
+                                update: function(e, ui) {
+                                    updateLevelClasses();
+                                }
+                            });
+                        }
                         
-                        <p class="submit">
-                            <button type="submit" name="ylw_save_series_order" class="button button-primary button-large">
-                                💾 保存排序
-                            </button>
-                        </p>
-                    </form>
+                        initSortable();
+                        
+                        // 更新层级样式
+                        function updateLevelClasses() {
+                            $('.series-sortable-advanced').each(function() {
+                                var level = $(this).data('level');
+                                $(this).children('li').each(function() {
+                                    $(this).removeClass('level-0 level-1 level-2').addClass('level-' + level);
+                                    $(this).find('.level-indicator').text('级别 ' + level);
+                                });
+                            });
+                        }
+                        
+                        // 设为子级按钮
+                        $(document).on('click', '.make-child', function() {
+                            var $item = $(this).closest('li');
+                            var $prev = $item.prev('li');
+                            
+                            if ($prev.length) {
+                                var $children = $prev.find('> ol');
+                                if (!$children.length) {
+                                    $children = $('<ol class="series-sortable-advanced" data-level="' + (parseInt($prev.closest('ol').data('level')) + 1) + '"></ol>');
+                                    $prev.append($children);
+                                    initSortable();
+                                }
+                                $children.append($item);
+                                updateLevelClasses();
+                            }
+                        });
+                        
+                        // 提升层级按钮
+                        $(document).on('click', '.make-parent', function() {
+                            var $item = $(this).closest('li');
+                            var $parentOl = $item.closest('ol');
+                            var $parentLi = $parentOl.closest('li');
+                            
+                            if ($parentLi.length) {
+                                $parentLi.after($item);
+                                if ($parentOl.children('li').length === 0) {
+                                    $parentOl.remove();
+                                }
+                                updateLevelClasses();
+                            }
+                        });
+                        
+                        // 保存排序
+                        $('#save-series-order-advanced').click(function() {
+                            var button = $(this);
+                            button.prop('disabled', true).text('保存中...');
+                            
+                            var data = collectHierarchy($('#series-sortable-list'));
+                            
+                            $.post(ajaxurl, {
+                                action: 'ylw_save_series_order',
+                                series_id: <?php echo $selected_series; ?>,
+                                data: JSON.stringify(data)
+                            }, function(response) {
+                                if (response.success) {
+                                    $('#save-message-advanced').text('✅ 保存成功！').fadeIn().delay(2000).fadeOut();
+                                } else {
+                                    $('#save-message-advanced').text('❌ 保存失败：' + response.data).fadeIn();
+                                }
+                                button.prop('disabled', false).text('💾 保存排序');
+                            });
+                        });
+                        
+                        // 收集层级数据
+                        function collectHierarchy($list, parentId = 0) {
+                            var items = [];
+                            var order = 1;
+                            
+                            $list.children('li').each(function() {
+                                var $li = $(this);
+                                var postId = $li.data('post-id');
+                                var $children = $li.find('> ol');
+                                
+                                items.push({
+                                    post_id: postId,
+                                    parent_id: parentId,
+                                    order: order
+                                });
+                                
+                                if ($children.length) {
+                                    items = items.concat(collectHierarchy($children, postId));
+                                }
+                                
+                                order++;
+                            });
+                            
+                            return items;
+                        }
+                    });
+                    </script>
                 <?php 
                     else :
                         echo '<p>该系列暂无文章。</p>';
