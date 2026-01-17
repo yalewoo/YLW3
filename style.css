@@ -148,6 +148,79 @@ img {
 }
 
 /* ========================================
+   可访问性工具类
+======================================== */
+/* 跳转链接 - 键盘用户可见 */
+.skip-link {
+	position: absolute;
+	top: -40px;
+	left: 0;
+	background: var(--primary-color);
+	color: #fff;
+	padding: var(--spacing-sm) var(--spacing-md);
+	z-index: 10000;
+	transition: top 0.3s ease;
+	border-radius: 0 0 var(--radius-sm) 0;
+}
+
+.skip-link:focus {
+	top: 0;
+	outline: 2px solid #fff;
+	outline-offset: 2px;
+}
+
+/* 屏幕阅读器专用文本 */
+.screen-reader-text {
+	border: 0;
+	clip: rect(1px, 1px, 1px, 1px);
+	clip-path: inset(50%);
+	height: 1px;
+	margin: -1px;
+	overflow: hidden;
+	padding: 0;
+	position: absolute;
+	width: 1px;
+	word-wrap: normal !important;
+}
+
+.screen-reader-text:focus {
+	background-color: var(--bg-card);
+	border-radius: var(--radius-sm);
+	box-shadow: var(--shadow-lg);
+	clip: auto !important;
+	clip-path: none;
+	color: var(--text-primary);
+	display: block;
+	font-size: 0.875rem;
+	font-weight: 600;
+	height: auto;
+	left: 5px;
+	line-height: normal;
+	padding: var(--spacing-md) var(--spacing-lg);
+	top: 5px;
+	width: auto;
+	z-index: 100000;
+}
+
+/* 焦点样式 - 所有可交互元素 */
+:focus-visible {
+	outline: 2px solid var(--primary-color);
+	outline-offset: 2px;
+}
+
+/* 减少动画偏好 */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
+/* ========================================
    顶部导航区域
 ======================================== */
 #topheader {

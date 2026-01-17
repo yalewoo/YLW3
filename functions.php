@@ -1,4 +1,21 @@
 <?php
+/**
+ * YLW3 Theme Functions
+ * 
+ * @package YLW3
+ * @since 3.2
+ */
+
+// 安全检查：禁止直接访问此文件
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+// 定义主题常量
+define('YLW3_VERSION', '3.2');
+define('YLW3_DIR', get_template_directory());
+define('YLW3_URI', get_template_directory_uri());
+
 //去掉wp_head()的多余代码
 remove_action('wp_head', 'rsd_link');
 remove_action('wp_head', 'wlwmanifest_link');

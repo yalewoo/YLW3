@@ -1,4 +1,6 @@
 <body <?php body_class(); ?>>
+<?php wp_body_open(); ?>
+<a class="skip-link screen-reader-text" href="#main">跳至正文</a>
 <header id="topheader">
 	<hgroup>
 		<h1><a href="<?php bloginfo("url")?>"><?php bloginfo('name'); ?></a></h1>

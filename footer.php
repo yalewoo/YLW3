@@ -9,15 +9,18 @@
 			<?php wp_nav_menu(array('theme_location' => 'footer_menu')); ?>
 		</div>
 	</div>
+	</div>
 	
 	<script>
-	var _hmt = _hmt || [];
-	(function() {
-		var hm = document.createElement("script");
-		hm.src = "https://hm.baidu.com/hm.js?32ff821f324bdf2e2fc17726c3591cab";
-		var s = document.getElementsByTagName("script")[0]; 
-		s.parentNode.insertBefore(hm, s);
-	})();
+	// 延迟加载百度统计（不阻塞页面渲染）
+	window.addEventListener('load', function() {
+		setTimeout(function() {
+			var hm = document.createElement("script");
+			hm.src = "https://hm.baidu.com/hm.js?32ff821f324bdf2e2fc17726c3591cab";
+			hm.defer = true;
+			document.head.appendChild(hm);
+		}, 100);
+	});
 	</script>
 </footer>
 
