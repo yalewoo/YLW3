@@ -106,7 +106,7 @@ if ( post_password_required() ) {
 
 	<?php if ( have_comments() ) : ?>
 		<h3 class="comments-title">
-		文章《<?php	echo get_the_title();?>》共有<?php echo get_comments_number(); ?>条评论：
+		文章《<?php	echo esc_html(get_the_title());?>》共有<?php echo esc_html(get_comments_number()); ?>条评论：
 		</h3>
 
 		<?php twentyfifteen_comment_nav(); ?>
@@ -156,4 +156,3 @@ if ( post_password_required() ) {
 
 </div><!-- .comments-area -->
 
-<?php wp_enqueue_script( 'comment-reply' );?>

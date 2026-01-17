@@ -3,6 +3,10 @@
  * 无需 jQuery 依赖
  */
 (function() {
+    const config = window.YLW3_DIANZAN || {};
+    const ajaxUrl = config.ajaxUrl || '/wp-admin/admin-ajax.php';
+    const nonce = config.nonce || '';
+
     // 点赞处理函数
     function handleLike(element) {
         if (element.classList.contains('done')) {
@@ -24,12 +28,14 @@
         const ajaxData = new URLSearchParams({
             action: 'specs_zan',
             um_id: id,
-            um_action: action
+            um_action: action,
+            nonce: nonce
         });
         
-        fetch('/wp-admin/admin-ajax.php', {
+        fetch(ajaxUrl, {
             method: 'POST',
-            body: ajaxData
+            body: ajaxData,
+            credentials: 'same-origin'
         })
         .then(response => response.text())
         .then(data => {

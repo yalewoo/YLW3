@@ -381,6 +381,7 @@ function ylw_series_order_page() {
     
     // 获取选中的系列
     $selected_series = isset($_GET['series_id']) ? intval($_GET['series_id']) : '';
+    $series_order_nonce = wp_create_nonce('ylw_series_order');
     
     ?>
     <div class="wrap">
@@ -607,7 +608,8 @@ function ylw_series_order_page() {
                     $.post(ajaxurl, {
                         action: 'ylw_save_series_order',
                         series_id: <?php echo $selected_series; ?>,
-                        data: JSON.stringify(data)
+                        data: JSON.stringify(data),
+                        nonce: '<?php echo esc_js($series_order_nonce); ?>'
                     }, function(response) {
                         if (response.success) {
                             $('#save-message').text('✅ 保存成功！').fadeIn().delay(2000).fadeOut();
@@ -693,12 +695,15 @@ function ylw_render_sortable_list($hierarchical, $level = 0) {
  * AJAX 保存系列排序
  */
 function ylw_ajax_save_series_order() {
+    check_ajax_referer('ylw_series_order', 'nonce');
+
     if (!current_user_can('manage_options')) {
         wp_send_json_error('权限不足');
     }
-    
-    $series_id = intval($_POST['series_id']);
-    $data = json_decode(stripslashes($_POST['data']), true);
+
+    $series_id = isset($_POST['series_id']) ? absint($_POST['series_id']) : 0;
+    $raw_data = isset($_POST['data']) ? wp_unslash($_POST['data']) : '';
+    $data = json_decode($raw_data, true);
     
     if (!$series_id || !is_array($data)) {
         wp_send_json_error('数据无效');
@@ -749,6 +754,7 @@ function ylw_series_meta_box_callback($post) {
     $selected_series = !empty($current_series) ? $current_series[0] : '';
     $series_order = get_post_meta($post->ID, 'series_order', true);
     $parent_post = get_post_meta($post->ID, 'series_parent_post', true);
+    $series_posts_nonce = wp_create_nonce('ylw_series_posts');
     
     $all_series = get_terms(array(
         'taxonomy' => 'post_series',
@@ -825,7 +831,8 @@ function ylw_series_meta_box_callback($post) {
         jQuery.post(ajaxurl, {
             action: 'ylw_get_series_posts',
             series_id: seriesId,
-            current_post_id: currentPostId
+            current_post_id: currentPostId,
+            nonce: '<?php echo esc_js($series_posts_nonce); ?>'
         }, function(response) {
             if (response.success) {
                 jQuery('#ylw_parent_post').html(response.data.options);
@@ -891,8 +898,14 @@ add_action('save_post', 'ylw_save_series_meta');
  * AJAX 获取系列文章列表
  */
 function ylw_ajax_get_series_posts() {
-    $series_id = intval($_POST['series_id']);
-    $current_post_id = intval($_POST['current_post_id']);
+    check_ajax_referer('ylw_series_posts', 'nonce');
+
+    $series_id = isset($_POST['series_id']) ? absint($_POST['series_id']) : 0;
+    $current_post_id = isset($_POST['current_post_id']) ? absint($_POST['current_post_id']) : 0;
+
+    if (!current_user_can('edit_posts')) {
+        wp_send_json_error('权限不足');
+    }
     
     $posts = get_posts(array(
         'post_type' => 'post',
@@ -1216,7 +1229,7 @@ function ylw_render_archive_list($hierarchical, $level = 0, &$counter = null, $d
                     <?php else : ?>
                         <span class="series-item-bullet">└</span>
                     <?php endif; ?>
-                    <a href="<?php echo get_permalink($series_post->ID); ?>"><?php echo esc_html($series_post->post_title); ?></a>
+                    <a href="<?php echo esc_url(get_permalink($series_post->ID)); ?>"><?php echo esc_html($series_post->post_title); ?></a>
                 </h2>
             </div>
             
@@ -1235,7 +1248,7 @@ function ylw_render_archive_list($hierarchical, $level = 0, &$counter = null, $d
             
             <?php if ($series_post->post_excerpt) : ?>
                 <div class="series-item-excerpt">
-                    <?php echo wp_trim_words($series_post->post_excerpt, 30); ?>
+                    <?php echo esc_html(wp_trim_words($series_post->post_excerpt, 30)); ?>
                 </div>
             <?php endif; ?>
         </li>
@@ -1258,6 +1271,7 @@ function ylw_render_archive_list($hierarchical, $level = 0, &$counter = null, $d
 function ylw_series_manager_page() {
     // 加载 jQuery UI sortable
     wp_enqueue_script('jquery-ui-sortable');
+    $series_order_nonce = wp_create_nonce('ylw_series_order');
     
     // 处理批量添加
     if (isset($_POST['ylw_bulk_add_series']) && check_admin_referer('ylw_bulk_series_action', 'ylw_bulk_series_nonce')) {
@@ -1573,7 +1587,8 @@ function ylw_series_manager_page() {
                             $.post(ajaxurl, {
                                 action: 'ylw_save_series_order',
                                 series_id: <?php echo $selected_series; ?>,
-                                data: JSON.stringify(data)
+                                data: JSON.stringify(data),
+                                nonce: '<?php echo esc_js($series_order_nonce); ?>'
                             }, function(response) {
                                 if (response.success) {
                                     $('#save-message-advanced').text('✅ 保存成功！').fadeIn().delay(2000).fadeOut();
@@ -1852,9 +1867,11 @@ function spam_protection_pre($commentdata){
 	if(isset($commentdata['comment_type']) && $commentdata['comment_type'] != ''){
 		return $commentdata;
 	}
-	$sum=$_POST['sum'];
+    $sum = isset($_POST['sum']) ? intval($_POST['sum']) : null;
+    $num1 = isset($_POST['num1']) ? intval($_POST['num1']) : null;
+    $num2 = isset($_POST['num2']) ? intval($_POST['num2']) : null;
 	switch($sum){
-	case $_POST['num1']+$_POST['num2']:break;
+    case $num1 + $num2:break;
 	case null:wp_die('对不起: 请输入验证码.');break;
 	default:wp_die('对不起: 验证码错误,请重试.');
 	}
@@ -1912,9 +1929,10 @@ add_action('wp_ajax_nopriv_specs_zan', 'specs_zan');
 add_action('wp_ajax_specs_zan', 'specs_zan');
 function specs_zan(){
     global $wpdb,$post;
-    $id = $_POST["um_id"];
-    $action = $_POST["um_action"];
-    if ( $action == 'ding'){
+    check_ajax_referer('specs_zan', 'nonce');
+    $id = isset($_POST["um_id"]) ? absint($_POST["um_id"]) : 0;
+    $action = isset($_POST["um_action"]) ? sanitize_text_field($_POST["um_action"]) : '';
+    if ( $id && $action === 'ding'){
         $specs_raters = get_post_meta($id,'specs_zan',true);
         $expire = time() + 99999999;
         $domain = ($_SERVER['HTTP_HOST'] != 'localhost') ? $_SERVER['HTTP_HOST'] : false; // make cookies work with localhost
@@ -1974,7 +1992,7 @@ class WP_Widget_myRandom_Posts extends WP_Widget {
         $output .= '<ul id="randomposts">';
         if ( $randomposts ) {
             foreach ( (array) $randomposts as $post) {
-                $output .= '<li><a href="' . get_permalink() . '">' . $post->post_title . '</a></li>';
+                $output .= '<li><a href="' . esc_url(get_permalink()) . '">' . esc_html($post->post_title) . '</a></li>';
             }
         }
         $output .= '</ul>';
@@ -2082,9 +2100,9 @@ global $comment;
 $url    = get_comment_author_url();
 $author = get_comment_author();
 if (empty( $url ) || 'http://' == $url )
- $return = $author;
+ $return = esc_html($author);
  else
- $return = "<a href='$url'  target='_blank'>$author</a>"; 
+ $return = "<a href='" . esc_url($url) . "' target='_blank' rel='noopener noreferrer'>" . esc_html($author) . "</a>"; 
  return $return;
 }
 add_filter('get_comment_author_link', 'comment_author_link_window');
@@ -2095,14 +2113,15 @@ add_filter('get_comment_author_link', 'comment_author_link_window');
 function comment_mail_notify($comment_id) {
   $admin_notify = '1'; // admin 要不要收回复通知 ( '1'=要 ; '0'=不要 )
   $admin_email = get_bloginfo ('admin_email'); // $admin_email 可改为你指定的 e-mail.
-  $comment = get_comment($comment_id);
+    $comment_id = absint($comment_id);
+    $comment = get_comment($comment_id);
   $comment_author_email = trim($comment->comment_author_email);
   $parent_id = $comment->comment_parent ? $comment->comment_parent : '';
   global $wpdb;
-  if ($wpdb->query("Describe {$wpdb->comments} comment_mail_notify") == '')
-    $wpdb->query("ALTER TABLE {$wpdb->comments} ADD COLUMN comment_mail_notify TINYINT NOT NULL DEFAULT 0;");
+    if ($wpdb->query("Describe {$wpdb->comments} comment_mail_notify") == '')
+        $wpdb->query("ALTER TABLE {$wpdb->comments} ADD COLUMN comment_mail_notify TINYINT NOT NULL DEFAULT 0;");
   if (($comment_author_email != $admin_email && isset($_POST['comment_mail_notify'])) || ($comment_author_email == $admin_email && $admin_notify == '1'))
-    $wpdb->query("UPDATE {$wpdb->comments} SET comment_mail_notify='1' WHERE comment_ID='$comment_id'");
+        $wpdb->query($wpdb->prepare("UPDATE {$wpdb->comments} SET comment_mail_notify = %d WHERE comment_ID = %d", 1, $comment_id));
   $notify = $parent_id ? get_comment($parent_id)->comment_mail_notify : '0';
   $spam_confirmed = $comment->comment_approved;
   if ($parent_id != '' && $spam_confirmed == '1' && $notify == '1') {
@@ -2117,7 +2136,7 @@ function comment_mail_notify($comment_id) {
        . trim(get_comment($parent_id)->comment_content) . '</p>
       <p>' . trim($comment->comment_author) . ' 给您回复了：</p><p style="background-color:#eef2fa; border:1px solid #d8e3e8; color:#111; padding:15px; border-radius:5px;">'
        . trim($comment->comment_content) . '<br /></p>
-      <p>您还可以<a href="' . htmlspecialchars(get_comment_link($parent_id)) . '" title="单击查看完整的回复内容" target="_blank">&nbsp;查看完整的回复內容</a>，欢迎再度光临<a href="https://www.yalewoo.com">雅乐网</a></p>
+            <p>您还可以<a href="' . esc_url(get_comment_link($parent_id)) . '" title="单击查看完整的回复内容" target="_blank" rel="noopener noreferrer">&nbsp;查看完整的回复內容</a>，欢迎再度光临<a href="https://www.yalewoo.com" target="_blank" rel="noopener noreferrer">雅乐网</a></p>
     </div>';
          $from = "From: \"" . get_option('blogname') . "评论提醒\" <$wp_email>";
          $headers = "$from\nContent-Type: text/html; charset=" . get_option('blog_charset') . "\n";
@@ -2131,7 +2150,7 @@ add_action('comment_post', 'comment_mail_notify');
 
 
 function autoblank($text) {
-	$return = str_replace('<a', '<a target="_blank"', $text);
+    $return = str_replace('<a', '<a target="_blank" rel="noopener noreferrer"', $text);
 	return $return;
 }
 add_filter('the_content', 'autoblank');
@@ -2214,12 +2233,21 @@ function ylw_enqueue_scripts() {
     // 单篇文章页加载点赞和目录脚本
     if (is_single()) {
         wp_enqueue_script('ylw-dianzan', get_template_directory_uri() . '/js/dianzan.js', array(), '1.0', true);
+        wp_localize_script('ylw-dianzan', 'YLW3_DIANZAN', array(
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('specs_zan'),
+        ));
         wp_enqueue_script('ylw-toc', get_template_directory_uri() . '/js/toc.js', array(), '1.0', true);
     }
     
     // 评论表单页面加载表情显示脚本
     if (is_singular() && comments_open()) {
         wp_enqueue_script('ylw-show-smilies', get_template_directory_uri() . '/js/show_smilies.js', array(), '1.0', true);
+    }
+
+    // 线程评论回复脚本
+    if (is_singular() && comments_open() && get_option('thread_comments')) {
+        wp_enqueue_script('comment-reply');
     }
 }
 add_action('wp_enqueue_scripts', 'ylw_enqueue_scripts');

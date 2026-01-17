@@ -11,7 +11,7 @@
 			<p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 1rem;">
 				提示：如果链接中含有日期，请尝试删除日期并在网址最后添加 .html
 			</p>
-			<a href="<?php echo home_url(); ?>">← 返回首页</a>
+			<a href="<?php echo esc_url(home_url('/')); ?>">← 返回首页</a>
 		</div>
 	</section>
 	<?php get_sidebar(); ?>

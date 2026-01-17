@@ -3,8 +3,8 @@
 <a class="skip-link screen-reader-text" href="#main">跳至正文</a>
 <header id="topheader">
 	<hgroup>
-		<h1><a href="<?php bloginfo("url")?>"><?php bloginfo('name'); ?></a></h1>
-		<h2><?php bloginfo("description")?></h2>
+		<h1><a href="<?php echo esc_url(home_url('/')); ?>"><?php echo esc_html(get_bloginfo('name')); ?></a></h1>
+		<h2><?php echo esc_html(get_bloginfo('description')); ?></h2>
 	</hgroup>
 
 	<div id="top_menu">

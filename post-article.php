@@ -2,11 +2,11 @@
 		<article <?php post_class('post'); ?> id="post-<?php the_ID(); ?>">
 			
 			<div class="post-thumb">
-				<a href="<?php the_permalink(); ?>" title="<?php the_title(); ?>">
+				<a href="<?php echo esc_url(get_permalink()); ?>" title="<?php echo esc_attr(get_the_title()); ?>">
 					<?php if ($post_index <= 3) : ?>
-						<img src="<?php echo esc_url( catch_first_image() ); ?>" alt="<?php the_title(); ?>" fetchpriority="high" />
+						<img src="<?php echo esc_url( catch_first_image() ); ?>" alt="<?php echo esc_attr(get_the_title()); ?>" fetchpriority="high" />
 					<?php else : ?>
-						<img src="<?php echo esc_url( catch_first_image() ); ?>" alt="<?php the_title(); ?>" loading="lazy" />
+						<img src="<?php echo esc_url( catch_first_image() ); ?>" alt="<?php echo esc_attr(get_the_title()); ?>" loading="lazy" />
 					<?php endif; ?>
 				</a>
 			</div>
@@ -20,7 +20,7 @@
 						<span class="title-meta-zhuanzai title-meta-ico"></span>
 					<?php endif; ?>
 
-					<a href="<?php the_permalink(); ?>" title="<?php the_title(); ?>"><?php the_title(); ?></a>
+					<a href="<?php echo esc_url(get_permalink()); ?>" title="<?php echo esc_attr(get_the_title()); ?>"><?php the_title(); ?></a>
 
 					<?php if ($custom_fields && in_array('recommend', $custom_fields)) : ?>
 						<span class="title-meta-recommend title-meta-ico"></span>

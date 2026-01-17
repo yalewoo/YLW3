@@ -13,7 +13,7 @@
 	<section class="whole_article" id="article-<?php the_ID(); ?>">
 		<article id="entry">
 			<h2 id="article-title">
-				<a href="<?php the_permalink(); ?>" title="<?php the_title(); ?>"><?php the_title(); ?></a>
+				<a href="<?php echo esc_url(get_permalink()); ?>" title="<?php echo esc_attr(get_the_title()); ?>"><?php the_title(); ?></a>
 			</h2>
 			
 			<div class="post-meta">

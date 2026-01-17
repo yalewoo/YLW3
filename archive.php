@@ -35,7 +35,7 @@
 				} elseif ( is_year() ){
 				the_time('Y年');
 				} elseif ( is_search() ){
-				echo $s.' 的搜索结果';
+				echo esc_html(get_search_query()) . ' 的搜索结果';
 				}
 				echo "</a>";
 			}

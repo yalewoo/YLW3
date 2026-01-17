@@ -21,7 +21,7 @@
 				<span class = "title-meta-zhuanzai title-meta-ico"></span>
 				<?php endif; ?>
 
-				<a href="<?php the_permalink(); ?>" title="<?php the_title(); ?>"><?php the_title(); ?></a>
+				<a href="<?php echo esc_url(get_permalink()); ?>" title="<?php echo esc_attr(get_the_title()); ?>"><?php the_title(); ?></a>
 
 				<?php   //$custom_fields = get_post_custom_keys(get_the_ID());
 				if (in_array ('recommend', $custom_fields)) : ?>
@@ -85,9 +85,9 @@
 			    </a>
 			</div>
 
-			<div class="reward-button"><a href="http://www.yalewoo.com/denote" target="_blank">赏</a> 
+			<div class="reward-button"><a href="http://www.yalewoo.com/denote" target="_blank" rel="noopener noreferrer">赏</a> 
 				<span class="reward-code">
-					<span class="alipay-code"> <img class="alipay-img wdp-appear" src="<?php bloginfo('template_directory'); ?>/img/alipay.png"><b>支付宝打赏</b> </span> <span class="wechat-code"> <img class="wechat-img wdp-appear" src="<?php bloginfo('template_directory'); ?>/img/wechatpay.png"><b>微信打赏</b> </span>
+					<span class="alipay-code"> <img class="alipay-img wdp-appear" src="<?php echo esc_url(get_template_directory_uri()); ?>/img/alipay.png" alt="支付宝打赏"><b>支付宝打赏</b> </span> <span class="wechat-code"> <img class="wechat-img wdp-appear" src="<?php echo esc_url(get_template_directory_uri()); ?>/img/wechatpay.png" alt="微信打赏"><b>微信打赏</b> </span>
 				</span>
 			</div>
 
@@ -124,7 +124,7 @@
             <?php   $custom_fields = get_post_custom_keys(get_the_ID());
 			if (!in_array ('copyright', $custom_fields)) : ?>
     			<b> 版权声明: </b>
-    			<p> 本文由 <?php the_author_posts_link(); ?> 原创，商业转载请联系作者获得授权。 <br>非商业转载请注明作者 <?php the_author_posts_link(); ?> 或 <a href="http://www.yalewoo.com/" title="雅乐网" ?>雅乐网</a> ，并附带本文链接：<br><a href="<?php the_permalink()?>" title=<?php the_title(); ?>><?php the_permalink()?></a></p>
+				<p> 本文由 <?php the_author_posts_link(); ?> 原创，商业转载请联系作者获得授权。 <br>非商业转载请注明作者 <?php the_author_posts_link(); ?> 或 <a href="http://www.yalewoo.com/" title="雅乐网">雅乐网</a> ，并附带本文链接：<br><a href="<?php echo esc_url(get_permalink()); ?>" title="<?php echo esc_attr(get_the_title()); ?>"><?php echo esc_html(get_permalink()); ?></a></p>
 				<?php else: ?>
 			<?php  $custom = get_post_custom(get_the_ID());
        		$custom_value = $custom['copyright']; ?>
@@ -150,39 +150,39 @@
 			<ul>
 				<?php
 				$post_num = 8;
-				$exclude_id = $post->ID;
+				$exclude_ids = array($post->ID);
 				$posttags = get_the_tags(); $i = 0;
 				if ( $posttags ) {
-					$tags = ''; foreach ( $posttags as $tag ) $tags .= $tag->term_id . ',';
+					$tags = wp_list_pluck($posttags, 'term_id');
 					$args = array(
 						'post_status' => 'publish',
-						'tag__in' => explode(',', $tags),
-						'post__not_in' => explode(',', $exclude_id),
+						'tag__in' => $tags,
+						'post__not_in' => $exclude_ids,
 						'ignore_sticky_posts' => 1,
 						'orderby' => 'comment_date',
 						'posts_per_page' => $post_num,
 					);
-					query_posts($args);
-					while( have_posts() ) { the_post(); ?>
-						<li><a rel="bookmark" href="<?php the_permalink(); ?>" title="<?php the_title(); ?>" target="_blank"><?php the_title(); ?></a></li>
+					$related_query = new WP_Query($args);
+					while( $related_query->have_posts() ) { $related_query->the_post(); ?>
+						<li><a rel="bookmark noopener noreferrer" href="<?php echo esc_url(get_permalink()); ?>" title="<?php echo esc_attr(get_the_title()); ?>" target="_blank"><?php the_title(); ?></a></li>
 					<?php
-						$exclude_id .= ',' . $post->ID; $i ++;
-					} wp_reset_query();
+						$exclude_ids[] = get_the_ID(); $i ++;
+					} wp_reset_postdata();
 				}
 				if ( $i < $post_num ) {
-					$cats = ''; foreach ( get_the_category() as $cat ) $cats .= $cat->cat_ID . ',';
+					$cats = wp_list_pluck(get_the_category(), 'cat_ID');
 					$args = array(
-						'category__in' => explode(',', $cats),
-						'post__not_in' => explode(',', $exclude_id),
+						'category__in' => $cats,
+						'post__not_in' => $exclude_ids,
 						'ignore_sticky_posts' => 1,
 						'orderby' => 'comment_date',
 						'posts_per_page' => $post_num - $i
 					);
-					query_posts($args);
-					while( have_posts() ) { the_post(); ?>
-						<li><a rel="bookmark" href="<?php the_permalink(); ?>"  title="<?php the_title(); ?>" target="_blank"><?php the_title(); ?></a></li>
+					$related_query = new WP_Query($args);
+					while( $related_query->have_posts() ) { $related_query->the_post(); ?>
+						<li><a rel="bookmark noopener noreferrer" href="<?php echo esc_url(get_permalink()); ?>"  title="<?php echo esc_attr(get_the_title()); ?>" target="_blank"><?php the_title(); ?></a></li>
 					<?php $i++;
-					} wp_reset_query();
+					} wp_reset_postdata();
 				}
 				if ( $i  == 0 )  echo '<li>没有相关文章!</li>';
 				?>
