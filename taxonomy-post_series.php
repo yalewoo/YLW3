@@ -3,10 +3,40 @@
  * 系列教程归档页模板
  * Template Name: Series Archive
  */
+$term = get_queried_object();
+
+// 跳转到该系列的第一篇文章（顶级层级）
+if ($term && !is_wp_error($term)) {
+	$series_posts = get_posts(array(
+		'post_type' => 'post',
+		'post_status' => 'publish',
+		'posts_per_page' => -1,
+		'tax_query' => array(
+			array(
+				'taxonomy' => 'post_series',
+				'field' => 'term_id',
+				'terms' => $term->term_id,
+			),
+		),
+		'orderby' => 'meta_value_num date',
+		'meta_key' => 'series_order',
+		'order' => 'ASC',
+	));
+
+	if (!empty($series_posts)) {
+		$hierarchical = ylw_build_hierarchical_posts($series_posts);
+		if (!empty($hierarchical) && !empty($hierarchical[0]['post'])) {
+			wp_safe_redirect(get_permalink($hierarchical[0]['post']->ID));
+			exit;
+		}
+		// 回退：若无层级，取排序第一篇
+		wp_safe_redirect(get_permalink($series_posts[0]->ID));
+		exit;
+	}
+}
+
 get_header(); 
 include("header-nav.php"); 
-
-$term = get_queried_object();
 ?>
 
 <div id="mbxdh">
