@@ -1,6 +1,13 @@
 <?php get_header(); ?>
 <?php include("header-nav.php"); ?>
 
+<?php 
+// 检查是否为系列文章
+$current_post_id = get_the_ID();
+$series_data = ylw_get_series_posts($current_post_id);
+$is_series = !empty($series_data['posts']);
+?>
+
 <div id="mbxdh">
 		<div>
 			
@@ -13,64 +20,48 @@
 		</div>
 </div>
 <main id="main" role="main">
-<div id="container">
-	<aside class="sidebar-wrapper">
-		<div class="sidebar-tabs">
-			<button class="sidebar-tab active" data-tab="toc">📑 目录</button>
-			<?php 
-			if(have_posts()) {
-				global $post;
-				$current_post_id = get_the_ID();
-				$series_data = ylw_get_series_posts($current_post_id);
-				if (!empty($series_data['posts'])) {
-					echo '<button class="sidebar-tab" data-tab="series">📚 系列</button>';
-				}
-			}
-			?>
-		</div>
+<div id="container" class="<?php echo $is_series ? 'series-layout' : ''; ?>">
+	
+	<?php if ($is_series) : ?>
+		<!-- Microsoft Learn风格三栏布局 -->
+		<!-- 移动端系列导航按钮 -->
+		<button class="series-mobile-toggle" id="seriesMobileToggle">
+			<span class="toggle-icon">☰</span>
+			<span class="toggle-text">系列文章</span>
+		</button>
 		
-		<!-- 文章目录导航 -->
-		<div class="sidebar-content active" data-content="toc">
+		<!-- 左侧：系列文章导航 -->
+		<aside class="series-left-sidebar" id="seriesLeftSidebar">
+			<button class="series-close-btn" id="seriesCloseBtn">✕</button>
+			<?php ylw_display_series_navigation_sidebar($current_post_id); ?>
+		</aside>
+		
+		<!-- 遮罩层 -->
+		<div class="series-overlay" id="seriesOverlay"></div>
+	<?php else : ?>
+		<!-- 普通文章：右侧Tab切换 -->
+		<aside class="sidebar-wrapper">
+			<div class="sidebar-tabs">
+				<button class="sidebar-tab active" data-tab="toc">📑 目录</button>
+			</div>
+			
+			<div class="sidebar-content active" data-content="toc">
+				<nav id="toc" class="table-of-contents">
+					<ul class="toc-list"></ul>
+				</nav>
+			</div>
+		</aside>
+	<?php endif; ?>
+	
+	<?php if ($is_series) : ?>
+		<!-- 系列文章：右侧文章目录 -->
+		<aside class="series-right-sidebar">
+			<div class="series-toc-header">本文内容</div>
 			<nav id="toc" class="table-of-contents">
 				<ul class="toc-list"></ul>
 			</nav>
-		</div>
-		
-		<!-- 系列教程导航 -->
-		<?php 
-		if(have_posts()) {
-			global $post;
-			$current_post_id = get_the_ID();
-			$series_data = ylw_get_series_posts($current_post_id);
-			if (!empty($series_data['posts'])) {
-				echo '<div class="sidebar-content" data-content="series">';
-				ylw_display_series_navigation_sidebar($current_post_id);
-				echo '</div>';
-			}
-		}
-		?>
-	</aside>
-	
-	<script>
-	document.addEventListener('DOMContentLoaded', function() {
-		const tabs = document.querySelectorAll('.sidebar-tab');
-		const contents = document.querySelectorAll('.sidebar-content');
-		
-		tabs.forEach(tab => {
-			tab.addEventListener('click', function() {
-				const targetTab = this.getAttribute('data-tab');
-				
-				// 移除所有 active 状态
-				tabs.forEach(t => t.classList.remove('active'));
-				contents.forEach(c => c.classList.remove('active'));
-				
-				// 添加当前 active 状态
-				this.classList.add('active');
-				document.querySelector(`[data-content="${targetTab}"]`).classList.add('active');
-			});
-		});
-	});
-	</script>
+		</aside>
+	<?php endif; ?>
 
 	<?php if(have_posts()) : ?><?php while(have_posts()) : the_post(); ?>
 	<section class="whole_article" id="article-<?php the_ID(); ?>">
@@ -271,5 +262,39 @@
 	</section>
 </div>
 </main>
+
+<?php if ($is_series) : ?>
+<script>
+// 系列导航移动端交互
+document.addEventListener('DOMContentLoaded', function() {
+	const toggleBtn = document.getElementById('seriesMobileToggle');
+	const closeBtn = document.getElementById('seriesCloseBtn');
+	const sidebar = document.getElementById('seriesLeftSidebar');
+	const overlay = document.getElementById('seriesOverlay');
+	
+	if (toggleBtn && sidebar && overlay) {
+		// 打开侧边栏
+		toggleBtn.addEventListener('click', function() {
+			sidebar.classList.add('active');
+			overlay.classList.add('active');
+			document.body.style.overflow = 'hidden';
+		});
+		
+		// 关闭侧边栏
+		const closeSidebar = function() {
+			sidebar.classList.remove('active');
+			overlay.classList.remove('active');
+			document.body.style.overflow = '';
+		};
+		
+		if (closeBtn) {
+			closeBtn.addEventListener('click', closeSidebar);
+		}
+		
+		overlay.addEventListener('click', closeSidebar);
+	}
+});
+</script>
+<?php endif; ?>
 
 <?php get_footer(); ?>
