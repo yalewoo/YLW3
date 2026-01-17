@@ -1109,11 +1109,8 @@ function ylw_display_series_navigation_sidebar($post_id) {
     
     ?>
     <nav class="series-sidebar">
-        <div class="series-sidebar-header">
-            📚 系列教程
-        </div>
         <div class="series-sidebar-title">
-            <a href="<?php echo esc_url($series_url); ?>"><?php echo esc_html($series->name); ?></a>
+            <strong><?php echo '📚 合集：' . esc_html($series->name); ?></strong>
         </div>
         <ol class="series-sidebar-list">
             <?php 
