@@ -2067,9 +2067,13 @@ table tr:last-child td {
 	}
 	
 	.main_nav > div li ul {
-		position: static;
-		box-shadow: none;
-		border-radius: 0;
+		position: absolute;
+		top: 100%;
+		left: 0;
+		min-width: 160px;
+		box-shadow: var(--shadow-lg);
+		border-radius: 0 0 var(--radius-md) var(--radius-md);
+		z-index: 1002;
 	}
 	
 	#blog {
