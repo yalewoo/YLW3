@@ -405,19 +405,60 @@ img {
 .single #container.series-layout {
 	display: grid;
 	grid-template-columns: 260px minmax(0, 900px) 240px;
+	grid-template-areas: "series-left series-main series-right";
 	gap: 0;
 	max-width: 1400px;
-	width: 100%;
 	margin: 0 auto;
 	padding: 0;
+	justify-content: center;
 }
 
-.single .whole_article {
+/* 系列布局：左侧导航 */
+.series-left-sidebar {
+	grid-area: series-left;
+	align-self: start;
+	position: sticky;
+	top: 80px;
+	max-height: calc(100vh - 100px);
+	overflow-y: auto;
+	padding: var(--spacing-xl) var(--spacing-lg);
+	background: #f8f9fa;
+	border-right: 1px solid var(--border-color);
+	box-sizing: border-box;
+}
+
+/* 系列布局：中间正文 */
+.single #container.series-layout .whole_article {
+	grid-area: series-main;
+	align-self: start;
+	max-width: 100%;
+	width: 100%;
+	padding: var(--spacing-xl) 40px;
+	background: #fff;
+	margin: 0;
+	box-sizing: border-box;
+}
+
+/* 系列布局：右侧目录 */
+.series-right-sidebar {
+	grid-area: series-right;
+	align-self: start;
+	position: sticky;
+	top: 80px;
+	max-height: calc(100vh - 100px);
+	overflow-y: auto;
+	padding: var(--spacing-xl) var(--spacing-lg);
+	background: #fff;
+	border-left: 1px solid var(--border-color);
+	box-sizing: border-box;
+}
+
+.single #container:not(.series-layout) .whole_article {
 	order: 1;
 	grid-column: 1;
 }
 
-.single .sidebar-wrapper {
+.single #container:not(.series-layout) .sidebar-wrapper {
 	order: 2;
 	grid-column: 2;
 	display: flex;
@@ -2240,50 +2281,6 @@ textarea:focus {
    系列教程样式
 ======================================== */
 
-/* Microsoft Learn 风格三栏布局 - 已在上面定义容器
-======================================== */
-
-/* 左侧：系列文章导航 */
-.series-left-sidebar {
-	grid-column: 1;
-	grid-row: 1;
-	position: sticky;
-	top: 80px;
-	max-height: calc(100vh - 100px);
-	overflow-y: auto;
-	padding: var(--spacing-xl) var(--spacing-lg);
-	background: #f8f9fa;
-	border-right: 1px solid var(--border-color);
-	box-sizing: border-box;
-}
-
-/* 中间：文章内容 */
-.single #container.series-layout .whole_article {
-	grid-column: 2;
-	grid-row: 1;
-	max-width: 100%;
-	width: 100%;
-	padding: var(--spacing-xl) 40px;
-	background: #fff;
-	margin: 0;
-	box-sizing: border-box;
-	order: 0;
-}
-
-/* 右侧：文章目录 */
-.series-right-sidebar {
-	grid-column: 3;
-	grid-row: 1;
-	position: sticky;
-	top: 80px;
-	max-height: calc(100vh - 100px);
-	overflow-y: auto;
-	padding: var(--spacing-xl) var(--spacing-lg);
-	background: #fff;
-	border-left: 1px solid var(--border-color);
-	box-sizing: border-box;
-}
-
 .series-toc-header {
 	font-weight: 600;
 	font-size: 0.875rem;
@@ -2315,17 +2312,6 @@ textarea:focus {
 .series-left-sidebar::-webkit-scrollbar-thumb:hover,
 .series-right-sidebar::-webkit-scrollbar-thumb:hover {
 	background: rgba(0, 0, 0, 0.25);
-}
-
-/* 响应式：中等屏幕 - 隐藏右侧目录 */
-@media (max-width: 1280px) {
-	.single #container.series-layout {
-		grid-template-columns: 240px minmax(0, 1fr);
-	}
-	
-	.series-right-sidebar {
-		display: none;
-	}
 }
 
 /* 移动端系列导航按钮 */
@@ -2392,24 +2378,37 @@ textarea:focus {
 	background: rgba(0, 0, 0, 0.5);
 	z-index: 998;
 	opacity: 0;
-	transition: opacity 0.3s ease;
+	visibility: hidden;
+	transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .series-overlay.active {
 	opacity: 1;
+	visibility: visible;
 }
 
-/* 响应式：小屏幕 - 移动端适配 */
-@media (max-width: 1024px) {
+/* 响应式：中等屏幕 (1024-1280px) - 保留右侧目录，隐藏左侧系列导航 */
+@media (max-width: 1280px) {
 	.single #container.series-layout {
-		grid-template-columns: 1fr;
-		padding: 0;
+		grid-template-columns: minmax(0, 900px) 240px;
+		grid-template-areas: "series-main series-right";
+		max-width: 1140px;
+		justify-content: center;
+	}
+	
+	.series-left-sidebar {
+		display: none;
+	}
+	
+	.series-right-sidebar {
+		display: block;
 	}
 	
 	.single #container.series-layout .whole_article {
-		padding: var(--spacing-lg) var(--spacing-md);
+		padding: var(--spacing-xl) var(--spacing-lg);
 	}
 	
+	/* 显示移动端按钮 */
 	.series-mobile-toggle {
 		display: flex;
 		align-items: center;
@@ -2423,7 +2422,9 @@ textarea:focus {
 		display: block;
 	}
 	
+	/* 左侧边栏抽屉化 */
 	.series-left-sidebar {
+		display: block;
 		position: fixed;
 		top: 0;
 		left: -100%;
@@ -2435,10 +2436,40 @@ textarea:focus {
 		transition: left 0.3s ease;
 		box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
 		padding-top: 50px;
+		border-right: 1px solid var(--border-color);
 	}
 	
 	.series-left-sidebar.active {
 		left: 0;
+	}
+	
+	/* 面包屑调整 */
+	#mbxdh.series-breadcrumb {
+		padding-left: var(--spacing-md);
+		max-width: 1140px;
+	}
+}
+
+/* 响应式：小屏幕 (< 1024px) - 隐藏右侧目录，只显示内容 */
+@media (max-width: 1024px) {
+	.single #container.series-layout {
+		grid-template-columns: 1fr;
+		grid-template-areas: "series-main";
+		max-width: 100%;
+		padding: 0;
+	}
+	
+	.series-right-sidebar {
+		display: none;
+	}
+	
+	.single #container.series-layout .whole_article {
+		padding: var(--spacing-lg) var(--spacing-md);
+		max-width: 100%;
+	}
+	
+	#mbxdh.series-breadcrumb {
+		max-width: 100%;
 	}
 }
 

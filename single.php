@@ -3,6 +3,11 @@
 
 <?php 
 // 检查是否为系列文章
+global $post;
+if (have_posts()) {
+	the_post();
+	rewind_posts();
+}
 $current_post_id = get_the_ID();
 $series_data = ylw_get_series_posts($current_post_id);
 $is_series = !empty($series_data['posts']);
@@ -20,37 +25,26 @@ $is_series = !empty($series_data['posts']);
 		</div>
 </div>
 <main id="main" role="main">
+
+<?php if ($is_series) : ?>
+	<!-- 移动端系列导航按钮 -->
+	<button class="series-mobile-toggle" id="seriesMobileToggle">
+		<span class="toggle-icon">☰</span>
+		<span class="toggle-text">系列文章</span>
+	</button>
+	
+	<!-- 遮罩层 -->
+	<div class="series-overlay" id="seriesOverlay"></div>
+<?php endif; ?>
+
 <div id="container" class="<?php echo $is_series ? 'series-layout' : ''; ?>">
 	
+	<!-- 左侧：系列文章导航（仅系列文章显示） -->
 	<?php if ($is_series) : ?>
-		<!-- Microsoft Learn风格三栏布局 -->
-		<!-- 移动端系列导航按钮 -->
-		<button class="series-mobile-toggle" id="seriesMobileToggle">
-			<span class="toggle-icon">☰</span>
-			<span class="toggle-text">系列文章</span>
-		</button>
-		
-		<!-- 左侧：系列文章导航 -->
-		<aside class="series-left-sidebar" id="seriesLeftSidebar">
-			<button class="series-close-btn" id="seriesCloseBtn">✕</button>
-			<?php ylw_display_series_navigation_sidebar($current_post_id); ?>
-		</aside>
-		
-		<!-- 遮罩层 -->
-		<div class="series-overlay" id="seriesOverlay"></div>
-	<?php else : ?>
-		<!-- 普通文章：右侧Tab切换 -->
-		<aside class="sidebar-wrapper">
-			<div class="sidebar-tabs">
-				<button class="sidebar-tab active" data-tab="toc">📑 目录</button>
-			</div>
-			
-			<div class="sidebar-content active" data-content="toc">
-				<nav id="toc" class="table-of-contents">
-					<ul class="toc-list"></ul>
-				</nav>
-			</div>
-		</aside>
+	<aside class="series-left-sidebar" id="seriesLeftSidebar">
+		<button class="series-close-btn" id="seriesCloseBtn">✕</button>
+		<?php ylw_display_series_navigation_sidebar($current_post_id); ?>
+	</aside>
 	<?php endif; ?>
 	
 	<?php if ($is_series) : ?>
@@ -61,6 +55,21 @@ $is_series = !empty($series_data['posts']);
 				<ul class="toc-list"></ul>
 			</nav>
 		</aside>
+	<?php endif; ?>
+	
+	<!-- 普通文章：右侧Tab切换（仅非系列文章显示） -->
+	<?php if (!$is_series) : ?>
+	<aside class="sidebar-wrapper">
+		<div class="sidebar-tabs">
+			<button class="sidebar-tab active" data-tab="toc">📑 目录</button>
+		</div>
+		
+		<div class="sidebar-content active" data-content="toc">
+			<nav id="toc" class="table-of-contents">
+				<ul class="toc-list"></ul>
+			</nav>
+		</div>
+	</aside>
 	<?php endif; ?>
 
 	<?php if(have_posts()) : ?><?php while(have_posts()) : the_post(); ?>
@@ -248,18 +257,16 @@ $is_series = !empty($series_data['posts']);
     		<?php comments_template('', true); ?>
 		</div>  
 
-
-        <?php endwhile; ?>
-
-		
-			<?php else : ?>
-		<section class="whole_article">
+        <?php endwhile; else : ?>
+        
+		<div class="whole_article">
     		<h2><?php _e("Not Found"); ?></h2>
-		</section>
+		</div>
 
         <?php endif; ?>
 
 	</section>
+	
 </div>
 </main>
 
