@@ -467,7 +467,7 @@ img {
 /* 单篇文章页面 - 两栏布局 900+300 */
 .single #container {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) 280px;
+	grid-template-columns: minmax(0, 1fr) 240px;
 	gap: var(--spacing-xl);
 	max-width: 1200px;
 	margin: var(--spacing-xl) auto;
@@ -626,6 +626,19 @@ img {
 .archive #container .archive-main,
 .category #container .archive-main {
 	grid-column: 1;
+}
+
+/* 分类/归档页：限制右侧栏宽度，避免过宽 */
+.archive #container,
+.category #container {
+	grid-template-columns: minmax(0, 1fr) var(--sidebar-width);
+}
+
+.archive #container #sidebar,
+.category #container #sidebar {
+	width: var(--sidebar-width);
+	max-width: var(--sidebar-width);
+	justify-self: end;
 }
 
 .single .whole_article,
@@ -2083,16 +2096,40 @@ table tr:last-child td {
 	#container {
 		grid-template-columns: 1fr;
 	}
+
+	/* 分类/归档页：窄屏只显示文章列表 */
+	.archive #container,
+	.category #container {
+		grid-template-columns: 1fr;
+	}
+
+	.archive #container #sidebar,
+	.category #container #sidebar {
+		display: none;
+	}
 	
 	#sidebar {
 		position: static;
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-		gap: var(--spacing-md);
+		display: block;
 	}
 	
 	#sidebar > ul {
-		display: contents;
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-lg);
+	}
+
+	#sidebar > ul > li,
+	#sidebar .widget {
+		margin-bottom: 0;
+	}
+
+	.single #container:not(.series-layout) .sidebar-wrapper {
+		grid-column: 1;
+		position: static;
+		top: auto;
+		max-height: none;
+		margin-top: var(--spacing-lg);
 	}
 	
 	.whole_article {
