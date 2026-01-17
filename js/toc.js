@@ -9,6 +9,8 @@
         const tocContainer = document.querySelector('.table-of-contents');
         const tocList = document.querySelector('.toc-list');
         const toc = document.getElementById('toc');
+        const sidebarWrapper = document.querySelector('.sidebar-wrapper');
+        const tocOriginalParent = toc ? toc.parentElement : null;
         
         if (!articleContent || !tocList || !toc) {
             console.warn('目录所需的 DOM 元素不存在');
@@ -21,10 +23,36 @@
         // 如果标题少于 2 个，隐藏目录
         if (headings.length < 2) {
             toc.style.display = 'none';
+            
+            // 对于非系列文章，同时隐藏整个侧边栏容器
+            if (sidebarWrapper) {
+                sidebarWrapper.style.display = 'none';
+            }
+            
             return;
         }
         
-        // 创建折叠按钮（预分配空间防止CLS）
+        // 窄屏时非系列文章隐藏右侧栏，将目录移到 body 以显示为浮层
+        function updateTocPlacement() {
+            if (!sidebarWrapper || !toc || !tocOriginalParent) {
+                return;
+            }
+            if (window.innerWidth <= 1024) {
+                if (toc.parentElement !== document.body) {
+                    document.body.appendChild(toc);
+                }
+                sidebarWrapper.style.display = 'none';
+            } else {
+                if (toc.parentElement === document.body) {
+                    tocOriginalParent.appendChild(toc);
+                }
+                sidebarWrapper.style.display = '';
+            }
+        }
+        updateTocPlacement();
+        window.addEventListener('resize', updateTocPlacement);
+        
+        // 创建折叠按钮（仅在有目录内容时创建）
         const toggleBtn = document.createElement('button');
         toggleBtn.className = 'toc-toggle-btn';
         toggleBtn.title = '目录';
